@@ -111,14 +111,14 @@ class alk_kpi_result(models.Model):
     semester = models.CharField(max_length=7, choices=SEMESTER_CHOICES)
     employee = models.ForeignKey('alk_employee', on_delete=models.CASCADE)
     kpi = models.ForeignKey('alk_kpi', on_delete=models.CASCADE)
-    weigth = models.DecimalField(max_digits=20, decimal_places=1,null=True)
-    min = models.DecimalField(max_digits=20, decimal_places=1, default=0.4)
-    target_set = models.DecimalField(max_digits=20, decimal_places=1,null=True)
-    max = models.DecimalField(max_digits=20, decimal_places=1, default=1.4)
-    target_input = models.DecimalField(max_digits=20, decimal_places=1,null=True, blank=True)
-    achivement = models.DecimalField(max_digits=20, decimal_places=1,null=True, blank=True)
+    weigth = models.DecimalField(max_digits=20, decimal_places=2,null=True)
+    min = models.DecimalField(max_digits=20, decimal_places=2, default=0.4)
+    target_set = models.DecimalField(max_digits=20, decimal_places=2,null=True)
+    max = models.DecimalField(max_digits=20, decimal_places=2, default=1.4)
+    target_input = models.DecimalField(max_digits=20, decimal_places=2,null=True, blank=True)
+    achivement = models.DecimalField(max_digits=20, decimal_places=2,null=True, blank=True)
     month = models.CharField(max_length=6, choices=MONTH_CHOICES)
-    final_result = models.DecimalField(max_digits=20, decimal_places=1, blank=True, null=True,editable=False)
+    final_result = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True,editable=False)
 
     def calculate_final_result(self):
         temp_result = 0
@@ -172,7 +172,7 @@ class alk_kpi_result(models.Model):
         self.final_result = self.calculate_final_result()
         super().save(*args, **kwargs)
     class Meta:
-        ordering = ['year', 'semester', 'employee', 'kpi']
+        ordering = ['year', 'semester', 'employee', 'kpi','month',]
         verbose_name_plural = "KPI Result"
     def __str__(self):
         return f"{self.employee} - {self.kpi} ({self.year} {self.semester})"
