@@ -7,20 +7,6 @@ from django.contrib.admin import SimpleListFilter
 from django.db import models
 
 
-class MultiSelectListFilter(SimpleListFilter):
-    template = 'admin/multiselect_filter.html'
-
-    def lookups(self, request, model_admin):
-        return super().lookups(request, model_admin)
-
-    def queryset(self, request, queryset):
-        values = request.GET.getlist(self.parameter_name)
-        if values:
-            q = models.Q()
-            for v in values:
-                q |= models.Q(**{self.parameter_name: v})
-            return queryset.filter(q)
-        return queryset
 # Đăng ký model alk_dept với giao diện admin, hỗ trợ import/export và các tuỳ chỉnh hiển thị.
 class alk_deptAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_class = alk_deptResource  # Sử dụng resource để import/export.
@@ -107,9 +93,9 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'target_input', 'achivement', 'month'
     ]
     list_per_page = 10
-    list_display_links = ("get_employee_name",'get_kpi_name',)  # Cho phép nhấp vào tên KPI để xem chi tiết
+    list_display_links = ('get_kpi_name',)  # Cho phép nhấp vào tên KPI để xem chi tiết
     #list_editable = ('target_input', 'achivement','month')  # Cho phép chỉnh sửa trực tiếp các trường này
-    readonly_fields = ('year', 'semester', 'employee', 'kpi', 'weigth', 'target_set','month', 'final_result')
+    readonly_fields = ('year', 'semester', 'weigth', 'target_set', 'month', 'min', 'final_result')
 
     search_fields = ('year', 'semester', 'employee__name', 'employee__user_id__username', 'kpi__kpi_name')
     list_filter = ('year', 'semester', 'month',)
@@ -189,8 +175,43 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         # Chỉ cho phép superuser sử dụng chức năng import
         return request.user.is_superuser
     def get_readonly_fields(self, request, obj=None):
-        # Nếu kpi.percentage_cal là False thì target_input readonly, nếu True thì cho edit
         ro = list(self.readonly_fields)
+        # Đảm bảo 'employee' luôn readonly
+        if 'employee' not in ro:
+            ro.append('employee')
+        user = request.user
+        # Kiểm tra nếu user là superuser thì luôn cho sửa kpi
+        if user.is_superuser:
+            if 'kpi' in ro:
+                ro.remove('kpi')
+            # from_sap: nếu kpi.from_sap True thì achivement readonly
+            if obj and obj.kpi and hasattr(obj.kpi, 'from_sap') and obj.kpi.from_sap:
+                if 'achivement' not in ro:
+                    ro.append('achivement')
+            elif 'achivement' in ro:
+                ro.remove('achivement')
+            return ro
+        # Kiểm tra nếu user có employee level 1
+        try:
+            employee = alk_employee.objects.get(user_id=user)
+            if employee.level == 1:
+                if 'kpi' in ro:
+                    ro.remove('kpi')
+                    ro.remove('max')
+            else:
+                if 'kpi' not in ro:
+                    ro.append('kpi')
+                    ro.append('max')
+        except alk_employee.DoesNotExist:
+            if 'kpi' not in ro:
+                ro.append('kpi')
+        # from_sap: nếu kpi.from_sap True thì achivement readonly
+        if obj and obj.kpi and hasattr(obj.kpi, 'from_sap') and obj.kpi.from_sap:
+            if 'achivement' not in ro:
+                ro.append('achivement')
+        elif 'achivement' in ro:
+            ro.remove('achivement')
+        # Logic target_input readonly giữ nguyên
         if obj and obj.kpi and hasattr(obj.kpi, 'percentage_cal'):
             if obj.kpi.percentage_cal is False:
                 if 'target_input' not in ro:
@@ -214,6 +235,7 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             return f"{round(obj.weigth * 100, 1)}%"
         return ''
     weigth_percent.short_description = 'Weigth (%)'
+
 class KpiUserFilter(SimpleListFilter):
     title = 'kpi'
     parameter_name = 'kpi'

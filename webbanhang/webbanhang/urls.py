@@ -1,5 +1,5 @@
 """
-URL configuration for alkana_kpi project.
+URL configuration for webbanhang project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
@@ -16,12 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from kpi_app import views
 
 urlpatterns = [
-    path('', admin.site.urls),
-    path('', include('kpi_app.urls')),
-    path('accounts/login/', views.user_login, name='login'),
-    path('accounts/logout/', views.user_logout, name='logout'),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('admin/', admin.site.urls),
+    path('', include('app.urls')),  # Include the app's URLs    
 ]
