@@ -1,0 +1,86 @@
+{% extends 'kpi_app/base.html' %}
+{% block main-content %}
+<div class="container mt-5" style="max-width: 600px">
+  <h2 class="mb-4 text-center">Employee Information / Thông tin nhân viên</h2>
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+  <form method="post" novalidate id="profile-form">
+    {% csrf_token %}
+    {% if employee %}
+    <div class="mb-3">
+      <label for="id_emp_name" class="form-label">Employee Name / Tên nhân viên</label>
+      <input type="text" name="emp_name" class="form-control" id="id_emp_name" value="{{ employee.name }}" required />
+      <div class="invalid-feedback">Không được để trống / Cannot be empty</div>
+    </div>
+    <div class="mb-3">
+      <label for="id_job_title" class="form-label">Job Title / Chức danh</label>
+      <select name="job_title" id="id_job_title" class="form-select">
+        {% for jt in job_titles %}
+          <option value="{{ jt.pk }}" {% if employee.job_title_id == jt.pk %}selected{% endif %}>{{ jt.job_title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="id_dept" class="form-label">Department / Phòng ban</label>
+      <select name="dept" id="id_dept" class="form-select">
+        {% for d in depts %}
+          <option value="{{ d.pk }}" {% if employee.dept_id == d.pk %}selected{% endif %}>{{ d.dept_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="id_dept_gr" class="form-label">Department Group / Nhóm phòng ban</label>
+      <select name="dept_gr" id="id_dept_gr" class="form-select">
+        {% for gr in dept_grs %}
+          <option value="{{ gr.pk }}" {% if employee.dept_gr_id == gr.pk %}selected{% endif %}>{{ gr.group_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="id_level" class="form-label">Level / Cấp bậc</label>
+      <select name="level" id="id_level" class="form-select">
+        {% for val, label in level_choices %}
+          <option value="{{ val }}" {% if employee.level == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% else %}
+      <div class="alert alert-warning">No employee information found for this account.<br>Không tìm thấy thông tin nhân viên cho tài khoản này.</div>
+    {% endif %}
+    <button type="submit" class="btn btn-primary w-100">Update / Cập nhật</button>
+  </form>
+  <hr />
+  <h4 class="mb-3">Change Password / Đổi mật khẩu</h4>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="id_old_password" class="form-label">Old Password / Mật khẩu cũ</label>
+      <input type="password" name="old_password" class="form-control" id="id_old_password" required />
+    </div>
+    <div class="mb-3">
+      <label for="id_new_password1" class="form-label">New Password / Mật khẩu mới</label>
+      <input type="password" name="new_password1" class="form-control" id="id_new_password1" required />
+    </div>
+    <div class="mb-3">
+      <label for="id_new_password2" class="form-label">Confirm New Password / Nhập lại mật khẩu mới</label>
+      <input type="password" name="new_password2" class="form-control" id="id_new_password2" required />
+    </div>
+    <button type="submit" class="btn btn-warning w-100">Change Password / Đổi mật khẩu</button>
+  </form>
+</div>
+<script>
+  document.getElementById('profile-form').addEventListener('submit', function(e) {
+    var empName = document.getElementById('id_emp_name');
+    if (empName && empName.value.trim() === '') {
+      empName.classList.add('is-invalid');
+      empName.focus();
+      e.preventDefault();
+    } else {
+      empName.classList.remove('is-invalid');
+    }
+  });
+</script>
+{% endblock %}
