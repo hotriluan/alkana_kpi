@@ -1,8 +1,8 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from .models import alk_dept, alk_job_title, alk_kpi, alk_perspective, alk_dept_objective, alk_dept_group, alk_employee, alk_kpi_result
-from .resources import *
-from .resources import alk_kpi_resultResource
+from .resources import AlkKpiResultImportResource, AlkKpiResultExportResource
+from .resources import alk_deptResource, alk_job_titleResource, alk_perspectiveResource, alk_dept_objectiveResource, alk_dept_groupResource, alk_employeeResource, alk_kpiResource
 from django.contrib.admin import SimpleListFilter
 from django.db import models
 
@@ -64,13 +64,23 @@ class alk_kpiAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     #list_editable = ('dept_obj', 'perspective', 'kpi_type', 'from_sap', 'active')
     #list_display_links = None  # Không cho phép chỉnh sửa trực tiếp từ danh sách, chỉ cho phép chỉnh sửa trong trang chi tiết.
 class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
-    resource_class = alk_kpi_resultResource
+    def get_import_resource_class(self):
+        return AlkKpiResultImportResource
+
+    def get_export_resource_class(self):
+        return AlkKpiResultExportResource
+
     list_display = (
         'year',
         'semester',
         'get_dept',
+        # 'get_employee_userid',
         'get_employee_name',
+        # 'get_level',
         'get_job_title',
+        # 'get_perspective',
+        # 'get_dept_obj',
+        'get_kpi_name',
         'weigth_percent_1f',
         'min_1f',
         'target_set_1f',
@@ -82,7 +92,7 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'get_kpi_type',
         'get_percentage_cal',
         'get_get_1_is_zero',
-        'get_kpi_name',
+        'get_kpi_from_sap',
     )
     fields = [
         'year', 'semester', 'employee', 'kpi', 'weigth', 'min', 'target_set', 'max',
@@ -273,6 +283,10 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             return f"{round(obj.final_result * 100, 1)}%"
         return ''
     final_result_percent_1f.short_description = 'Final Result (%)'
+
+    def get_kpi_from_sap(self, obj):
+        return obj.kpi.from_sap if obj.kpi else ''
+    get_kpi_from_sap.short_description = 'Is From SAP'
 
 class KpiUserFilter(SimpleListFilter):
     title = 'kpi'

@@ -1,7 +1,6 @@
 from import_export import resources, fields
-from import_export.widgets import BooleanWidget, ForeignKeyWidget
+from import_export.widgets import BooleanWidget, ForeignKeyWidget, Widget
 
-#from alkana_kpi.kpi_app import admin
 from .models import alk_dept, alk_job_title, alk_kpi, alk_perspective, alk_dept_objective, alk_dept_group, alk_employee, alk_kpi_result
 from django.contrib.auth.models import User
 
@@ -109,29 +108,60 @@ class alk_kpiResource(resources.ModelResource):
         fields = ('kpi_name', 'perspective','dept_obj',  'kpi_type', 'percentage_cal', 'get_1_is_zero','from_sap', 'active')
     # Chỉ import/export các trường này.
 
-class alk_kpi_resultResource(resources.ModelResource):
-    year = fields.Field(attribute='year', column_name='Year')
-    semester = fields.Field(attribute='semester', column_name='Semester')
-    get_dept = fields.Field(column_name='Department')
-    get_employee_userid = fields.Field(column_name='Employee id')
-    get_employee_name = fields.Field(column_name='Employee Name')
-    get_level = fields.Field(column_name='Level')
-    get_job_title = fields.Field(column_name='Job Title')
-    get_perspective = fields.Field(column_name='Perspective')
-    get_dept_obj = fields.Field(column_name='Department Objective')
-    get_kpi_name = fields.Field(column_name='KPI')
-    weigth = fields.Field(attribute='weigth', column_name='Weigth')
-    min = fields.Field(attribute='min', column_name='Min')
-    target_set = fields.Field(attribute='target_set', column_name='Target set')
-    max = fields.Field(attribute='max', column_name='Max')
-    target_input = fields.Field(attribute='target_input', column_name='Target input')
-    achivement = fields.Field(attribute='achivement', column_name='Achivement')
-    final_result = fields.Field(attribute='final_result', column_name='Final Result')
-    month = fields.Field(attribute='month', column_name='Month')
-    get_kpi_type = fields.Field(column_name='KPI Type')
-    get_percentage_cal = fields.Field(column_name='Percentage Cal')
-    get_get_1_is_zero = fields.Field(column_name='get_1_is_zero')
+class EmployeeUsernameWidget(Widget):
+    def clean(self, value, row=None, *args, **kwargs):
+        from .models import alk_employee
+        try:
+            return alk_employee.objects.get(user_id__username=value)
+        except alk_employee.DoesNotExist:
+            raise Exception(f"Không tìm thấy nhân viên với username: {value}")
+    def render(self, value, obj=None):
+        return value.user_id.username if value and value.user_id else ''
 
+class AlkKpiResultImportResource(resources.ModelResource):
+    year = fields.Field(attribute='year', column_name='year')
+    semester = fields.Field(attribute='semester', column_name='semester')
+    employee = fields.Field(
+        attribute='employee',
+        column_name='employee',
+        widget=EmployeeUsernameWidget()
+    )
+    kpi = fields.Field(
+        attribute='kpi',
+        column_name='kpi',
+        widget=ForeignKeyWidget(alk_kpi, 'kpi_name')
+    )
+    weigth = fields.Field(attribute='weigth', column_name='weigth')
+    target_set = fields.Field(attribute='target_set', column_name='target_set')
+    month = fields.Field(attribute='month', column_name='month')
+
+    class Meta:
+        model = alk_kpi_result
+        import_id_fields = ('year', 'semester', 'employee', 'kpi', 'month')
+        fields = (
+            'year', 'semester', 'employee', 'kpi', 'weigth', 'target_set', 'month'
+        )
+        export_order = fields
+class AlkKpiResultExportResource(resources.ModelResource):
+    get_dept = fields.Field(column_name='get_dept')
+    get_employee_userid = fields.Field(column_name='get_employee_userid')
+    get_employee_name = fields.Field(column_name='get_employee_name')
+    get_level = fields.Field(column_name='get_level')
+    get_job_title = fields.Field(column_name='get_job_title')
+    get_perspective = fields.Field(column_name='get_perspective')
+    get_dept_obj = fields.Field(column_name='get_dept_obj')
+    get_kpi_name = fields.Field(column_name='get_kpi_name')
+    weigth_percent_1f = fields.Field(column_name='weigth_percent_1f')
+    min_1f = fields.Field(column_name='min_1f')
+    target_set_1f = fields.Field(column_name='target_set_1f')
+    max_1f = fields.Field(column_name='max_1f')
+    target_input_1f = fields.Field(column_name='target_input_1f')
+    achivement_1f = fields.Field(column_name='achivement_1f')
+    final_result_percent_1f = fields.Field(column_name='final_result_percent_1f')
+    get_kpi_type = fields.Field(column_name='get_kpi_type')
+    get_percentage_cal = fields.Field(column_name='get_percentage_cal')
+    get_get_1_is_zero = fields.Field(column_name='get_get_1_is_zero')
+    get_kpi_from_sap = fields.Field(column_name='get_kpi_from_sap')
     def dehydrate_get_dept(self, obj):
         return obj.employee.dept.dept_name if obj.employee and obj.employee.dept else ''
     def dehydrate_get_employee_userid(self, obj):
@@ -148,25 +178,57 @@ class alk_kpi_resultResource(resources.ModelResource):
         return obj.kpi.dept_obj.objective_name if obj.kpi and obj.kpi.dept_obj else ''
     def dehydrate_get_kpi_name(self, obj):
         return obj.kpi.kpi_name if obj.kpi else ''
+    def dehydrate_weigth_percent_1f(self, obj):
+        return f"{round(obj.weigth * 100, 1)}%" if obj.weigth is not None else ''
+    def dehydrate_min_1f(self, obj):
+        return f"{round(obj.min, 1)}" if obj.min is not None else ''
+    def dehydrate_target_set_1f(self, obj):
+        return f"{round(obj.target_set, 1)}" if obj.target_set is not None else ''
+    def dehydrate_max_1f(self, obj):
+        return f"{round(obj.max, 1)}" if obj.max is not None else ''
+    def dehydrate_target_input_1f(self, obj):
+        return f"{round(obj.target_input, 1)}" if obj.target_input is not None else ''
+    def dehydrate_achivement_1f(self, obj):
+        return f"{round(obj.achivement, 1)}" if obj.achivement is not None else ''
+    def dehydrate_final_result_percent_1f(self, obj):
+        return f"{round(obj.final_result * 100, 1)}%" if obj.final_result is not None else ''
     def dehydrate_get_kpi_type(self, obj):
-        return obj.kpi.kpi_type if obj.kpi else ''
+        kpi_type_map = {
+            1: "1 - Bigger better result = achieve/target",
+            2: "2 - Smaller better result = target/achieve",
+            3: "3 - Mistake"
+        }
+        return kpi_type_map.get(obj.kpi.kpi_type, obj.kpi.kpi_type) if obj.kpi else ''
     def dehydrate_get_percentage_cal(self, obj):
         return obj.kpi.percentage_cal if obj.kpi else ''
     def dehydrate_get_get_1_is_zero(self, obj):
         return obj.kpi.get_1_is_zero if obj.kpi else ''
+    def dehydrate_get_kpi_from_sap(self, obj):
+        return obj.kpi.from_sap if obj.kpi else ''
 
     class Meta:
         model = alk_kpi_result
-        import_id_fields = ('year', 'semester', 'employee', 'kpi', 'month')
-        fields = (
-            'year', 'semester', 'get_dept', 'get_employee_userid', 'get_employee_name', 'get_level',
-            'get_job_title', 'get_perspective', 'get_dept_obj', 'get_kpi_name', 'weigth', 'min',
-            'target_set', 'max', 'target_input', 'achivement', 'final_result', 'month',
-            'get_kpi_type', 'get_percentage_cal', 'get_get_1_is_zero'
-        )
         export_order = (
-            'year', 'semester', 'get_dept', 'get_employee_userid', 'get_employee_name', 'get_level',
-            'get_job_title', 'get_perspective', 'get_dept_obj', 'get_kpi_name', 'weigth', 'min',
-            'target_set', 'max', 'target_input', 'achivement', 'final_result', 'month',
-            'get_kpi_type', 'get_percentage_cal', 'get_get_1_is_zero'
+            'year',
+            'semester',
+            'get_dept',
+            'get_employee_userid',
+            'get_employee_name',
+            'get_level',
+            'get_job_title',
+            'get_perspective',
+            'get_dept_obj',
+            'get_kpi_name',
+            'weigth_percent_1f',
+            'min_1f',
+            'target_set_1f',
+            'max_1f',
+            'target_input_1f',
+            'achivement_1f',
+            'final_result_percent_1f',
+            'month',
+            'get_kpi_type',
+            'get_percentage_cal',
+            'get_get_1_is_zero',
+            'get_kpi_from_sap',
         )

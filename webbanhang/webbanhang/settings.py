@@ -78,9 +78,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # Đảm bảo đúng chính tả là 'mysql'
         'NAME': 'webbanhang',                 # Đặt tên database là chuỗi
-        'USER': 'root',
-        'PASSWORD': '',                       # Thêm mật khẩu nếu có
-        'HOST': 'localhost',
+        'USER': 'root@192.168.18.29',
+        'PASSWORD': 'alkana123',                       # Thêm mật khẩu nếu có
+        'HOST': '192.168.18.33',
         'PORT': '3306',
     }
 }
