@@ -69,24 +69,20 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'year',
         'semester',
         'get_dept',
-        # 'get_employee_userid',  # Thêm cột user_id
-        'get_employee_name',  # Thay thế cột employee bằng tên nhân viên
-        # 'get_level',
+        'get_employee_name',
         'get_job_title',
-        # 'get_perspective',
-        # 'get_dept_obj',
-        'get_kpi_name',
-        'weigth_percent',  # Thay weigth bằng weigth_percent
-        'min',
-        'target_set_percent',  # Thay target_set bằng target_set_percent
-        'max',
-        'target_input',
-        'achivement',
-        'final_result_percent',  # Thay final_result bằng final_result_percent
+        'weigth_percent_1f',
+        'min_1f',
+        'target_set_1f',
+        'max_1f',
+        'target_input_1f',
+        'achivement_1f',
+        'final_result_percent_1f',
         'month',
         'get_kpi_type',
         'get_percentage_cal',
         'get_get_1_is_zero',
+        'get_kpi_name',
     )
     fields = [
         'year', 'semester', 'employee', 'kpi', 'weigth', 'min', 'target_set', 'max',
@@ -235,6 +231,48 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             return f"{round(obj.weigth * 100, 1)}%"
         return ''
     weigth_percent.short_description = 'Weigth (%)'
+
+    def weigth_percent_1f(self, obj):
+        if obj.weigth is not None:
+            return f"{round(obj.weigth * 100, 1)}%"
+        return ''
+    weigth_percent_1f.short_description = 'Weigth (%)'
+
+    def min_1f(self, obj):
+        if obj.min is not None:
+            return f"{round(obj.min, 1)}"
+        return ''
+    min_1f.short_description = 'Min'
+
+    def target_set_1f(self, obj):
+        if obj.target_set is not None:
+            return f"{round(obj.target_set, 1)}"
+        return ''
+    target_set_1f.short_description = 'Target Set'
+
+    def max_1f(self, obj):
+        if obj.max is not None:
+            return f"{round(obj.max, 1)}"
+        return ''
+    max_1f.short_description = 'Max'
+
+    def target_input_1f(self, obj):
+        if obj.target_input is not None:
+            return f"{round(obj.target_input, 1)}"
+        return ''
+    target_input_1f.short_description = 'Target Input'
+
+    def achivement_1f(self, obj):
+        if obj.achivement is not None:
+            return f"{round(obj.achivement, 1)}"
+        return ''
+    achivement_1f.short_description = 'Achivement'
+
+    def final_result_percent_1f(self, obj):
+        if obj.final_result is not None:
+            return f"{round(obj.final_result * 100, 1)}%"
+        return ''
+    final_result_percent_1f.short_description = 'Final Result (%)'
 
 class KpiUserFilter(SimpleListFilter):
     title = 'kpi'
