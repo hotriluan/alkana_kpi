@@ -83,7 +83,7 @@ DATABASES = {
         'NAME': 'alkana_kpi',                 # Đặt tên database là chuỗi
         'USER': 'root@192.168.18.29',
         'PASSWORD': 'alkana123',                       # Thêm mật khẩu nếu có
-        'HOST': '192.168.18.33',
+        'HOST': '192.168.18.33',  # Đặt host là 'localhost'
         'PORT': '3306',
     }
 }

@@ -121,6 +121,9 @@ class alk_kpi_result(models.Model):
     final_result = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True,editable=False)
 
     def calculate_final_result(self):
+        # Nếu target_input hoặc achivement là None thì final_result = 0
+        if self.target_input is None or self.achivement is None:
+            return 0
         temp_result = 0
         temp_achive = 0
         # Lấy các biến cần thiết
