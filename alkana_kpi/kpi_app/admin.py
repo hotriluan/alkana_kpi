@@ -84,6 +84,7 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'weigth_percent_1f',
         'min_1f',
         'target_set_1f',
+        # 'target_set',
         'max_1f',
         'target_input_1f',
         'achivement_1f',
@@ -104,7 +105,13 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     readonly_fields = ('year', 'semester', 'weigth', 'target_set', 'month', 'min', 'final_result')
 
     search_fields = ('year', 'semester', 'employee__name', 'employee__user_id__username', 'kpi__kpi_name')
-    list_filter = ('year', 'semester', 'month',)
+    list_filter = (
+        'year', 'semester', 'month',
+        'kpi__kpi_type',
+        'kpi__percentage_cal',
+        'kpi__get_1_is_zero',
+        'kpi__from_sap',
+    )
 
     class Media:
         css = {
@@ -233,7 +240,7 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     final_result_percent.short_description = 'Final Result (%)'
     def target_set_percent(self, obj):
         if obj.kpi and hasattr(obj.kpi, 'percentage_cal') and obj.kpi.percentage_cal and obj.target_set is not None:
-            return f"{round(obj.target_set * 100, 1)}%"
+            return f"{round(obj.target_set * 100, 3)}%"
         return obj.target_set
     target_set_percent.short_description = 'Target Set'
     def weigth_percent(self, obj):
@@ -256,7 +263,9 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
     def target_set_1f(self, obj):
         if obj.target_set is not None:
-            return f"{round(obj.target_set, 1)}"
+            if obj.kpi and hasattr(obj.kpi, 'percentage_cal') and obj.kpi.percentage_cal:
+                return f"{round(obj.target_set * 100, 1)}%"
+            return f"{round(obj.target_set, 2)}"
         return ''
     target_set_1f.short_description = 'Target Set'
 

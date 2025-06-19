@@ -141,7 +141,7 @@ class alk_kpi_result(models.Model):
             if achivement > 0:
                 return 0
             else:
-                return weigth
+                return weigth * max_val
         else:
             if kpi_type == 3:
                 if achivement == 0:

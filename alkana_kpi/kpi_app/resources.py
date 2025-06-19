@@ -133,13 +133,14 @@ class AlkKpiResultImportResource(resources.ModelResource):
     )
     weigth = fields.Field(attribute='weigth', column_name='weigth')
     target_set = fields.Field(attribute='target_set', column_name='target_set')
+    achivement = fields.Field(attribute='achivement', column_name='achivement')
     month = fields.Field(attribute='month', column_name='month')
 
     class Meta:
         model = alk_kpi_result
         import_id_fields = ('year', 'semester', 'employee', 'kpi', 'month')
         fields = (
-            'year', 'semester', 'employee', 'kpi', 'weigth', 'target_set', 'month'
+            'year', 'semester', 'employee', 'kpi', 'weigth', 'target_set','achivement', 'month'
         )
         export_order = fields
 class AlkKpiResultExportResource(resources.ModelResource):
