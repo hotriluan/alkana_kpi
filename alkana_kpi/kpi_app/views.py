@@ -1,14 +1,14 @@
 from django.shortcuts import render
-
-# Create your views here.
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import alk_employee, alk_job_title, alk_dept, alk_dept_group
+from .models import alk_employee, alk_job_title, alk_dept, alk_dept_group, alk_kpi_result
 from django.contrib.auth import update_session_auth_hash
+import csv
+import pandas as pd
 
 # def index(request):
 #     return HttpResponse("Hello, world. You're at the polls index 123.")
@@ -20,7 +20,44 @@ def home(request):
         user_dept = alk_dept.objects.filter(alk_employee__user_id=user).distinct()
     except alk_employee.DoesNotExist:
         user_dept = alk_dept.objects.none()
-    return render(request, 'kpi_app/home.html', {'user_dept': user_dept})
+
+    # Lấy các tham số lọc từ request
+    year = request.GET.get('year')
+    semester = request.GET.get('semester')
+    month = request.GET.get('month')
+    user_id = request.GET.get('user_id')
+    name = request.GET.get('name')
+
+    report_data = None
+    if any([year, semester, month, user_id, name]):
+        results = alk_kpi_result.objects.all()
+        if year:
+            results = results.filter(year=year)
+        if semester:
+            results = results.filter(semester=semester)
+        if month:
+            results = results.filter(month=month)
+        if user_id:
+            results = results.filter(employee__user_id__username__icontains=user_id)
+        if name:
+            results = results.filter(employee__name__icontains=name)
+        from django.db.models import Sum
+        report_data = results.values(
+            'year', 'semester', 'month',
+            'employee__user_id__username', 'employee__name', 'employee__dept__dept_name'
+        ).annotate(subtotal=Sum('final_result'))
+
+    return render(request, 'kpi_app/home.html', {
+        'user_dept': user_dept,
+        'report_data': report_data,
+        'filters': {
+            'year': year or '',
+            'semester': semester or '',
+            'month': month or '',
+            'user_id': user_id or '',
+            'name': name or '',
+        }
+    })
 
 def user_login(request):
     if request.method == 'POST':
@@ -101,6 +138,48 @@ def profile(request):
         'dept_grs': dept_grs,
         'level_choices': level_choices,
     })
+
+def export_alk_kpi_result(request):
+    year = request.GET.get('year')
+    semester = request.GET.get('semester')
+    month = request.GET.get('month')
+    user_id = request.GET.get('user_id')
+    name = request.GET.get('name')
+
+    results = alk_kpi_result.objects.all()
+    if year:
+        results = results.filter(year=year)
+    if semester:
+        results = results.filter(semester=semester)
+    if month:
+        results = results.filter(month=month)
+    if user_id:
+        results = results.filter(employee__user_id__username__icontains=user_id)
+    if name:
+        results = results.filter(employee__name__icontains=name)
+
+    from django.db.models import Sum
+    grouped = results.values(
+        'year', 'semester', 'month',
+        'employee__user_id__username', 'employee__name', 'employee__dept__dept_name'
+    ).annotate(subtotal=Sum('final_result'))
+
+    # Xuất ra Excel
+    df = pd.DataFrame(list(grouped))
+    df.rename(columns={
+        'year': 'Year',
+        'semester': 'Semester',
+        'month': 'Month',
+        'employee__user_id__username': 'Employee User ID',
+        'employee__name': 'Employee Name',
+        'employee__dept__dept_name': 'Department',
+        'subtotal': 'Subtotal (Final Result)'
+    }, inplace=True)
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="alk_kpi_result_report.xlsx"'
+    with pd.ExcelWriter(response, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='KPI Report')
+    return response
 
 
 

@@ -6,6 +6,99 @@
     (KPIs) effectively.<br />
   </p>
 
+  <!-- Export Report Form -->
+  <div class="row mt-4 justify-content-center">
+    <div class="col-md-8">
+      <form method="get" action="" class="card card-body" id="reportForm">
+        <div class="row">
+          <div class="col-md-4 mb-2">
+            <label for="year">Year</label>
+            <input type="number" class="form-control" name="year" id="year" placeholder="Year" value="{{ filters.year }}">
+          </div>
+          <div class="col-md-4 mb-2">
+            <label for="semester">Semester</label>
+            <select class="form-control" name="semester" id="semester">
+              <option value="">--All--</option>
+              <option value="1st SEM" {% if filters.semester == '1st SEM' %}selected{% endif %}>1st SEM</option>
+              <option value="2nd SEM" {% if filters.semester == '2nd SEM' %}selected{% endif %}>2nd SEM</option>
+            </select>
+          </div>
+          <div class="col-md-4 mb-2">
+            <label for="month">Month</label>
+            <select class="form-control" name="month" id="month">
+              <option value="">--All--</option>
+              <option value="1st" {% if filters.month == '1st' %}selected{% endif %}>1st</option>
+              <option value="2nd" {% if filters.month == '2nd' %}selected{% endif %}>2nd</option>
+              <option value="3rd" {% if filters.month == '3rd' %}selected{% endif %}>3rd</option>
+              <option value="4th" {% if filters.month == '4th' %}selected{% endif %}>4th</option>
+              <option value="5th" {% if filters.month == '5th' %}selected{% endif %}>5th</option>
+              <option value="final" {% if filters.month == 'final' %}selected{% endif %}>Final</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-2">
+            <label for="user_id">Employee User ID</label>
+            <input type="text" class="form-control" name="user_id" id="user_id" placeholder="User ID" value="{{ filters.user_id }}">
+          </div>
+          <div class="col-md-6 mb-2">
+            <label for="name">Employee Name</label>
+            <input type="text" class="form-control" name="name" id="name" placeholder="Name" value="{{ filters.name }}">
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col text-center">
+            <button type="submit" class="btn btn-success" name="action" value="view">Xem báo cáo</button>
+            <button type="submit" class="btn btn-primary" name="action" value="excel" formaction="{% url 'export_alk_kpi_result' %}">Xuất Excel</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- End Export Report Form -->
+
+  {% if report_data %}
+  <div class="row mt-5 justify-content-center">
+    <div class="col-md-10">
+      <div class="card">
+        <div class="card-header bg-primary text-white">Báo cáo KPI theo bộ lọc</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped mb-0">
+              <thead class="thead-dark">
+                <tr>
+                  <th>Year</th>
+                  <th>Semester</th>
+                  <th>Month</th>
+                  <th>Employee User ID</th>
+                  <th>Employee Name</th>
+                  <th>Department</th>
+                  <th>Subtotal (Final Result)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in report_data %}
+                <tr>
+                  <td>{{ row.year }}</td>
+                  <td>{{ row.semester }}</td>
+                  <td>{{ row.month }}</td>
+                  <td>{{ row.employee__user_id__username }}</td>
+                  <td>{{ row.employee__name }}</td>
+                  <td>{{ row.employee__dept__dept_name }}</td>
+                  <td>{{ row.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center">Không có dữ liệu phù hợp.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <div class="row mt-4"></div>
 </div>
 {% endblock main-content %}
