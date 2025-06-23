@@ -88,6 +88,7 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'max_1f',
         'target_input_1f',
         'achivement_1f',
+        'factor_percent_1f',  # Thêm cột Factor ở đây
         'final_result_percent_1f',
         'month',
         'get_kpi_type',
@@ -296,6 +297,16 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def get_kpi_from_sap(self, obj):
         return obj.kpi.from_sap if obj.kpi else ''
     get_kpi_from_sap.short_description = 'Is From SAP'
+
+    def factor_percent_1f(self, obj):
+        if obj.final_result is not None and obj.weigth:
+            try:
+                value = obj.final_result / obj.weigth
+                return f"{round(value * 100, 1)}%"
+            except Exception:
+                return ''
+        return ''
+    factor_percent_1f.short_description = 'Factor (%)'
 
 class KpiUserFilter(SimpleListFilter):
     title = 'kpi'

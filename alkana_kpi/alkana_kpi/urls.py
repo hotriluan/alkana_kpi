@@ -19,8 +19,8 @@ from django.urls import path, include
 from kpi_app import views
 
 urlpatterns = [
-    path('', admin.site.urls),
     path('', include('kpi_app.urls')),
+    path('', admin.site.urls),
     path('accounts/login/', views.user_login, name='login'),
     path('accounts/logout/', views.user_logout, name='logout'),
     path('accounts/', include('django.contrib.auth.urls')),
