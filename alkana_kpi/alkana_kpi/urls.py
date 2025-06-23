@@ -16,11 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponseRedirect
 from kpi_app import views
 
+def redirect_root(request):
+    return HttpResponseRedirect('/admin/')
+
 urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', redirect_root),
     path('', include('kpi_app.urls')),
-    path('', admin.site.urls),
     path('accounts/login/', views.user_login, name='login'),
     path('accounts/logout/', views.user_logout, name='logout'),
     path('accounts/', include('django.contrib.auth.urls')),
