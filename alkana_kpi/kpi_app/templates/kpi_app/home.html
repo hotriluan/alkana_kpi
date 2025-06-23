@@ -1,10 +1,7 @@
-{% extends "kpi_app/base.html" %} {%load static%} {% block main-content %}
+{% extends "kpi_app/base.html" %} {% load static %} {% load percent %} {% block main-content %}
 <div class="container mt-5">
-  <h1 class="text-center">Welcome to the Alkana KPI Application</h1>
-  <p class="text-center">
-    This application helps you track and manage your Key Performance Indicators
-    (KPIs) effectively.<br />
-  </p>
+  <h1 class="text-center">Alkana KPI Application Report</h1>
+  
 
   <!-- Export Report Form -->
   <div class="row mt-4 justify-content-center">
@@ -48,8 +45,8 @@
         </div>
         <div class="row mt-3">
           <div class="col text-center">
-            <button type="submit" class="btn btn-success" name="action" value="view">Xem báo cáo</button>
-            <button type="submit" class="btn btn-primary" name="action" value="excel" formaction="{% url 'export_alk_kpi_result' %}">Xuất Excel</button>
+            <button type="submit" class="btn btn-success" name="action" value="view">Report</button>
+            <button type="submit" class="btn btn-primary" name="action" value="excel" formaction="{% url 'export_alk_kpi_result' %}">Excel</button>
           </div>
         </div>
       </form>
@@ -61,7 +58,7 @@
   <div class="row mt-5 justify-content-center">
     <div class="col-md-10">
       <div class="card">
-        <div class="card-header bg-primary text-white">Báo cáo KPI theo bộ lọc</div>
+        <div class="card-header bg-primary text-white">KPI report</div>
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-bordered table-striped mb-0">
@@ -73,7 +70,7 @@
                   <th>Employee User ID</th>
                   <th>Employee Name</th>
                   <th>Department</th>
-                  <th>Subtotal (Final Result)</th>
+                  <th>Final Result</th>
                 </tr>
               </thead>
               <tbody>
@@ -85,7 +82,7 @@
                   <td>{{ row.employee__user_id__username }}</td>
                   <td>{{ row.employee__name }}</td>
                   <td>{{ row.employee__dept__dept_name }}</td>
-                  <td>{{ row.subtotal|floatformat:2 }}</td>
+                  <td>{{ row.subtotal|percent }}</td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="7" class="text-center">Không có dữ liệu phù hợp.</td></tr>

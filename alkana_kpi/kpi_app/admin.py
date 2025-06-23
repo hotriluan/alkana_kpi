@@ -5,6 +5,7 @@ from .resources import AlkKpiResultImportResource, AlkKpiResultExportResource
 from .resources import alk_deptResource, alk_job_titleResource, alk_perspectiveResource, alk_dept_objectiveResource, alk_dept_groupResource, alk_employeeResource, alk_kpiResource
 from django.contrib.admin import SimpleListFilter
 from django.db import models
+from django.utils.safestring import mark_safe
 
 
 # Đăng ký model alk_dept với giao diện admin, hỗ trợ import/export và các tuỳ chỉnh hiển thị.
@@ -346,6 +347,6 @@ admin.site.register(alk_kpi_result, AlkKpiResultAdmin)
 
 admin.site.site_header = "Alkana KPI App"  # Tùy chỉnh tiêu đề trang admin
 admin.site.site_title = "Alkana KPI App"  # Tùy chỉnh tiêu đề trang đăng nhập admin
-admin.site.index_title = "Welcome to Alkana KPI App"  # Tùy chỉnh tiêu đề trang chính của admin
+admin.site.index_title = mark_safe('Welcome to Alkana KPI App | <a href="/home/">Report</a>')  # Thêm link vào tiêu đề trang admin, mở cùng cửa sổ
 
 
