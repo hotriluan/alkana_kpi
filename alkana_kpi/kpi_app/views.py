@@ -29,8 +29,15 @@ def home(request):
     name = request.GET.get('name')
 
     report_data = None
-    if any([year, semester, month, user_id, name]):
+    if any([year, semester, month, user_id, name]) or user.is_superuser:
         results = alk_kpi_result.objects.all()
+        if not user.is_superuser:
+            # Lọc theo bộ phận của employee có user_id là username của user đang đăng nhập
+            try:
+                employee = alk_employee.objects.get(user_id=user)
+                results = results.filter(employee__dept=employee.dept)
+            except alk_employee.DoesNotExist:
+                results = results.none()
         if year:
             results = results.filter(year=year)
         if semester:
