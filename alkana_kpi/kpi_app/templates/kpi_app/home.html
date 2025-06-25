@@ -82,7 +82,7 @@
                   <td>{{ row.employee__user_id__username }}</td>
                   <td>{{ row.employee__name }}</td>
                   <td>{{ row.employee__dept__dept_name }}</td>
-                  <td>{{ row.subtotal|percent }}</td>
+                  <td>{{ row.subtotal|mul:100|floatformat:1 }}%</td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="7" class="text-center">Không có dữ liệu phù hợp.</td></tr>

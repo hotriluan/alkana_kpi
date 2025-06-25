@@ -130,7 +130,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
+# nhớ thêm webconfig vào thư mục staticfiles để có thể chạy trên IIS
 from import_export.formats.base_formats import XLSX
 IMPORT_EXPORT_FORMATS = [XLSX]
 EXPORT_FORMATS = [XLSX]

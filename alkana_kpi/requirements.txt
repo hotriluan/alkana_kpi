@@ -18,3 +18,4 @@ platformdirs>=4.3.8
 tzdata>=2025.2
 virtualenv>=20.31.2
 virtualenvwrapper-win>=1.2.7
+pandas>=2.2.2
