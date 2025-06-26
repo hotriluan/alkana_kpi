@@ -10,8 +10,7 @@ from django.contrib.auth import update_session_auth_hash
 import csv
 import pandas as pd
 
-# def index(request):
-#     return HttpResponse("Hello, world. You're at the polls index 123.")
+
 @login_required
 def home(request):
     user = request.user
