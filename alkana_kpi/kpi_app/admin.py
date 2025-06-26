@@ -266,8 +266,8 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def target_set_1f(self, obj):
         if obj.target_set is not None:
             if obj.kpi and hasattr(obj.kpi, 'percentage_cal') and obj.kpi.percentage_cal:
-                return f"{round(obj.target_set * 100, 1)}%"
-            return f"{round(obj.target_set, 2)}"
+                return f"{round(obj.target_set * 100, 3)}%"
+            return f"{obj.target_set:.4f}"
         return ''
     target_set_1f.short_description = 'Target Set'
 
@@ -279,13 +279,13 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
     def target_input_1f(self, obj):
         if obj.target_input is not None:
-            return f"{round(obj.target_input, 1)}"
+            return f"{obj.target_input:.4f}"
         return ''
     target_input_1f.short_description = 'Target Input'
 
     def achivement_1f(self, obj):
         if obj.achivement is not None:
-            return f"{round(obj.achivement, 1)}"
+            return f"{obj.achivement:.4f}"
         return ''
     achivement_1f.short_description = 'Achivement'
 
