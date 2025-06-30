@@ -9,6 +9,7 @@ from .models import alk_employee, alk_job_title, alk_dept, alk_dept_group, alk_k
 from django.contrib.auth import update_session_auth_hash
 import csv
 import pandas as pd
+from django.core.paginator import Paginator
 
 
 @login_required
@@ -28,6 +29,7 @@ def home(request):
     name = request.GET.get('name')
 
     report_data = None
+    page_obj = None
     if any([year, semester, month, user_id, name]) or user.is_superuser:
         results = alk_kpi_result.objects.all()
         if not user.is_superuser:
@@ -52,10 +54,13 @@ def home(request):
             'year', 'semester', 'month',
             'employee__user_id__username', 'employee__name', 'employee__dept__dept_name'
         ).annotate(subtotal=Sum('final_result'))
+        paginator = Paginator(report_data, 20)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
     return render(request, 'kpi_app/home.html', {
         'user_dept': user_dept,
-        'report_data': report_data,
+        'report_data': page_obj if page_obj else report_data,
         'filters': {
             'year': year or '',
             'semester': semester or '',

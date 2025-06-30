@@ -90,6 +90,31 @@
               </tbody>
             </table>
           </div>
+          {% if report_data and report_data.paginator %}
+          <nav aria-label="Page navigation" class="mt-3">
+            <ul class="pagination justify-content-center">
+              {% if report_data.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ report_data.previous_page_number }}{% if filters.year %}&year={{ filters.year }}{% endif %}{% if filters.semester %}&semester={{ filters.semester }}{% endif %}{% if filters.month %}&month={{ filters.month }}{% endif %}{% if filters.user_id %}&user_id={{ filters.user_id }}{% endif %}{% if filters.name %}&name={{ filters.name }}{% endif %}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+              {% endif %}
+              {% for num in report_data.paginator.page_range %}
+                <li class="page-item {% if report_data.number == num %}active{% endif %}">
+                  <a class="page-link" href="?page={{ num }}{% if filters.year %}&year={{ filters.year }}{% endif %}{% if filters.semester %}&semester={{ filters.semester }}{% endif %}{% if filters.month %}&month={{ filters.month }}{% endif %}{% if filters.user_id %}&user_id={{ filters.user_id }}{% endif %}{% if filters.name %}&name={{ filters.name }}{% endif %}">{{ num }}</a>
+                </li>
+              {% endfor %}
+              {% if report_data.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ report_data.next_page_number }}{% if filters.year %}&year={{ filters.year }}{% endif %}{% if filters.semester %}&semester={{ filters.semester }}{% endif %}{% if filters.month %}&month={{ filters.month }}{% endif %}{% if filters.user_id %}&user_id={{ filters.user_id }}{% endif %}{% if filters.name %}&name={{ filters.name }}{% endif %}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+          {% endif %}
         </div>
       </div>
     </div>
