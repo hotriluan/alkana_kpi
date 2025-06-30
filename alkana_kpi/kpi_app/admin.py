@@ -101,7 +101,7 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'year', 'semester', 'employee', 'kpi', 'weigth', 'min', 'target_set', 'max',
         'target_input', 'achivement', 'month'
     ]
-    list_per_page = 10
+    list_per_page = 15
     list_display_links = ('get_kpi_name',)  # Cho phép nhấp vào tên KPI để xem chi tiết
     #list_editable = ('target_input', 'achivement','month')  # Cho phép chỉnh sửa trực tiếp các trường này
     readonly_fields = ('year', 'semester', 'weigth', 'target_set', 'month', 'min', 'final_result')
@@ -266,8 +266,8 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def target_set_1f(self, obj):
         if obj.target_set is not None:
             if obj.kpi and hasattr(obj.kpi, 'percentage_cal') and obj.kpi.percentage_cal:
-                return f"{round(obj.target_set * 100, 3)}%"
-            return f"{obj.target_set:.4f}"
+                return f"{round(obj.target_set * 100, 3):,.3f}%"
+            return f"{obj.target_set:,.4f}"
         return ''
     target_set_1f.short_description = 'Target Set'
 
@@ -279,13 +279,13 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
     def target_input_1f(self, obj):
         if obj.target_input is not None:
-            return f"{obj.target_input:.4f}"
+            return f"{obj.target_input:,.4f}"
         return ''
     target_input_1f.short_description = 'Target Input'
 
     def achivement_1f(self, obj):
         if obj.achivement is not None:
-            return f"{obj.achivement:.4f}"
+            return f"{obj.achivement:,.4f}"
         return ''
     achivement_1f.short_description = 'Achivement'
 
