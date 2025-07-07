@@ -6,7 +6,7 @@ from .resources import alk_deptResource, alk_job_titleResource, alk_perspectiveR
 from django.contrib.admin import SimpleListFilter
 from django.db import models
 from django.utils.safestring import mark_safe
-
+#test
 
 # Đăng ký model alk_dept với giao diện admin, hỗ trợ import/export và các tuỳ chỉnh hiển thị.
 class alk_deptAdmin(ImportExportModelAdmin, admin.ModelAdmin):
