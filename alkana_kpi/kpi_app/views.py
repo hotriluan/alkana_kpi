@@ -10,7 +10,7 @@ from django.contrib.auth import update_session_auth_hash
 import csv
 import pandas as pd
 from django.core.paginator import Paginator
-
+git add kpi_app/templates/kpi_app/home.html
 
 @login_required
 def home(request):
