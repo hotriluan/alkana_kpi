@@ -264,10 +264,12 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         if 'employee' not in ro:
             ro.append('employee')
         user = request.user
-        # Kiểm tra nếu user là superuser thì luôn cho sửa kpi
+        # Kiểm tra nếu user là superuser thì luôn cho sửa kpi và target_set
         if user.is_superuser:
             if 'kpi' in ro:
                 ro.remove('kpi')
+            if 'target_set' in ro:
+                ro.remove('target_set')
             # from_sap: nếu kpi.from_sap True thì achivement readonly
             if obj and obj.kpi and hasattr(obj.kpi, 'from_sap') and obj.kpi.from_sap:
                 if 'achivement' not in ro:
