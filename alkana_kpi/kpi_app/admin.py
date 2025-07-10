@@ -350,8 +350,11 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         hoặc nếu percentage_cal=False và target_set<1 thì cũng hiển thị phần trăm,
         hoặc nếu percent_display=True thì luôn hiển thị phần trăm,
         ngược lại hiển thị 4 chữ số thập phân.
+        Nếu target_set == 0 thì không hiển thị phần trăm.
         """
         if obj.target_set is not None:
+            if obj.target_set == 0:
+                return f"{obj.target_set:,.4f}"
             if obj.kpi and hasattr(obj.kpi, 'percent_display') and obj.kpi.percent_display:
                 return f"{round(obj.target_set * 100, 3):,.3f}%"
             if obj.kpi and hasattr(obj.kpi, 'percentage_cal'):
@@ -375,8 +378,11 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         Hiển thị target_input với 4 chữ số thập phân,
         hoặc nếu percentage_cal=False và target_set<1 thì hiển thị phần trăm,
         hoặc nếu percent_display=True thì luôn hiển thị phần trăm.
+        Nếu target_set == 0 thì không hiển thị phần trăm.
         """
         if obj.target_input is not None:
+            if obj.target_set == 0:
+                return f"{obj.target_input:,.4f}"
             if obj.kpi and hasattr(obj.kpi, 'percent_display') and obj.kpi.percent_display:
                 return f"{round(obj.target_input * 100, 3):,.3f}%"
             if obj.kpi and hasattr(obj.kpi, 'percentage_cal') and obj.kpi.percentage_cal is False and obj.target_set is not None and obj.target_set < 1:
@@ -390,8 +396,11 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         Hiển thị achivement với 4 chữ số thập phân,
         hoặc nếu percentage_cal=False và target_set<1 thì hiển thị phần trăm,
         hoặc nếu percent_display=True thì luôn hiển thị phần trăm.
+        Nếu target_set == 0 thì không hiển thị phần trăm.
         """
         if obj.achivement is not None:
+            if obj.target_set == 0:
+                return f"{obj.achivement:,.4f}"
             if obj.kpi and hasattr(obj.kpi, 'percent_display') and obj.kpi.percent_display:
                 return f"{round(obj.achivement * 100, 3):,.3f}%"
             if obj.kpi and hasattr(obj.kpi, 'percentage_cal') and obj.kpi.percentage_cal is False and obj.target_set is not None and obj.target_set < 1:
