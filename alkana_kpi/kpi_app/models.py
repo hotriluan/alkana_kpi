@@ -85,6 +85,7 @@ class alk_kpi(models.Model):
     active = models.BooleanField(default=True)
     percentage_cal= models.BooleanField(default=False)
     get_1_is_zero= models.BooleanField(default=False)
+    percent_display = models.BooleanField(default=False,null=True, blank=True)
 
 
     class Meta:

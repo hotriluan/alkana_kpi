@@ -101,11 +101,11 @@ class alk_kpiResource(resources.ModelResource):
     active = fields.Field(attribute='active', column_name='active', widget=BooleanWidget())
     is_percentage = fields.Field(attribute='percentage_cal', column_name='percentage_cal', widget=BooleanWidget())
     get_1_zero= fields.Field(attribute='get_1_is_zero', column_name='get_1_is_zero', widget=BooleanWidget())
-
+    percent_display = fields.Field(attribute='percent_display', column_name='percent_display', widget=BooleanWidget())
     class Meta:
         model = alk_kpi
         import_id_fields = ('kpi_name',)
-        fields = ('kpi_name', 'perspective','dept_obj',  'kpi_type', 'percentage_cal', 'get_1_is_zero','from_sap', 'active')
+        fields = ('kpi_name', 'perspective','dept_obj',  'kpi_type', 'percentage_cal', 'get_1_is_zero','from_sap', 'percent_display','active')
     # Chỉ import/export các trường này.
 
 class EmployeeUsernameWidget(Widget):

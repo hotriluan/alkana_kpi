@@ -86,7 +86,7 @@ class alk_kpiAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     - Hỗ trợ tìm kiếm, lọc và phân trang.
     """
     resource_class = alk_kpiResource
-    list_display = ('kpi_name', 'perspective', 'dept_obj', 'kpi_type', 'percentage_cal', 'get_1_is_zero','from_sap', 'active')
+    list_display = ('kpi_name', 'perspective', 'dept_obj', 'kpi_type', 'percentage_cal', 'get_1_is_zero','from_sap','percent_display' ,'active')
     search_fields = ('kpi_name',)
     list_filter = ('active',)
     list_per_page = 15
@@ -348,15 +348,18 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         """
         Hiển thị target_set với định dạng phần trăm nếu có percentage_cal,
         hoặc nếu percentage_cal=False và target_set<1 thì cũng hiển thị phần trăm,
+        hoặc nếu percent_display=True thì luôn hiển thị phần trăm,
         ngược lại hiển thị 4 chữ số thập phân.
         """
         if obj.target_set is not None:
+            if obj.kpi and hasattr(obj.kpi, 'percent_display') and obj.kpi.percent_display:
+                return f"{round(obj.target_set * 100, 3):,.3f}%"
             if obj.kpi and hasattr(obj.kpi, 'percentage_cal'):
                 if obj.kpi.percentage_cal:
                     return f"{round(obj.target_set * 100, 3):,.3f}%"
                 elif obj.target_set < 1:
                     return f"{round(obj.target_set * 100, 3):,.3f}%"
-            return f"{obj.target_set:,.4f}"  
+            return f"{obj.target_set:,.4f}"
         return ''
     target_set_1f.short_description = 'Target Set'
 
@@ -370,9 +373,12 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def target_input_1f(self, obj):
         """
         Hiển thị target_input với 4 chữ số thập phân,
-        hoặc nếu percentage_cal=False và target_set<1 thì hiển thị phần trăm.
+        hoặc nếu percentage_cal=False và target_set<1 thì hiển thị phần trăm,
+        hoặc nếu percent_display=True thì luôn hiển thị phần trăm.
         """
         if obj.target_input is not None:
+            if obj.kpi and hasattr(obj.kpi, 'percent_display') and obj.kpi.percent_display:
+                return f"{round(obj.target_input * 100, 3):,.3f}%"
             if obj.kpi and hasattr(obj.kpi, 'percentage_cal') and obj.kpi.percentage_cal is False and obj.target_set is not None and obj.target_set < 1:
                 return f"{round(obj.target_input * 100, 3):,.3f}%"
             return f"{obj.target_input:,.4f}"
@@ -382,9 +388,12 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def achivement_1f(self, obj):
         """
         Hiển thị achivement với 4 chữ số thập phân,
-        hoặc nếu percentage_cal=False và target_set<1 thì hiển thị phần trăm.
+        hoặc nếu percentage_cal=False và target_set<1 thì hiển thị phần trăm,
+        hoặc nếu percent_display=True thì luôn hiển thị phần trăm.
         """
         if obj.achivement is not None:
+            if obj.kpi and hasattr(obj.kpi, 'percent_display') and obj.kpi.percent_display:
+                return f"{round(obj.achivement * 100, 3):,.3f}%"
             if obj.kpi and hasattr(obj.kpi, 'percentage_cal') and obj.kpi.percentage_cal is False and obj.target_set is not None and obj.target_set < 1:
                 return f"{round(obj.achivement * 100, 3):,.3f}%"
             return f"{obj.achivement:,.4f}"
