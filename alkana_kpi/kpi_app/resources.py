@@ -132,7 +132,10 @@ class AlkKpiResultImportResource(resources.ModelResource):
         widget=ForeignKeyWidget(alk_kpi, 'kpi_name')
     )
     weigth = fields.Field(attribute='weigth', column_name='weigth')
+    min = fields.Field(attribute='min', column_name='min')
     target_set = fields.Field(attribute='target_set', column_name='target_set')
+    max = fields.Field(attribute='max', column_name='max')
+    target_input = fields.Field(attribute='target_input', column_name='Target Input')
     achivement = fields.Field(attribute='achivement', column_name='achivement')
     month = fields.Field(attribute='month', column_name='month')
 
@@ -140,7 +143,7 @@ class AlkKpiResultImportResource(resources.ModelResource):
         model = alk_kpi_result
         import_id_fields = ('year', 'semester', 'employee', 'kpi', 'month')
         fields = (
-            'year', 'semester', 'employee', 'kpi', 'weigth', 'target_set','achivement', 'month'
+            'year', 'semester', 'employee', 'kpi', 'weigth', 'min', 'target_set', 'max', 'target_input', 'achivement', 'month'
         )
         export_order = fields
 class AlkKpiResultExportResource(resources.ModelResource):
