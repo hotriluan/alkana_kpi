@@ -191,6 +191,25 @@ def export_alk_kpi_result(request):
         df.to_excel(writer, index=False, sheet_name='KPI Report')
     return response
 
+def manage_kpi_result(request):
+    years = alk_kpi_result.objects.values_list('year', flat=True).distinct().order_by('year')
+    semesters = alk_kpi_result.objects.values_list('semester', flat=True).distinct().order_by('semester')
+    if request.method == 'GET':
+        active = request.GET.get('active', 'true')
+        year = request.GET.get('year')
+        semester = request.GET.get('semester')
+        # Nếu có các tham số và bấm submit thì cập nhật
+        if 'year' in request.GET and 'semester' in request.GET and 'active' in request.GET:
+            is_active = True if active == 'true' else False
+            alk_kpi_result.objects.filter(year=year, semester=semester).update(active=is_active)
+            messages.success(request, f"Đã cập nhật trạng thái active cho các KPI Result năm {year}, học kỳ {semester}!")
+        context = {
+            'years': years,
+            'semesters': semesters,
+            'active': active,
+        }
+        return render(request, 'kpi_app/manage.html', context)
+
 
 
 

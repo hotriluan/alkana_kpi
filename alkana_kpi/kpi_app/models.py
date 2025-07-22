@@ -120,6 +120,7 @@ class alk_kpi_result(models.Model):
     achivement = models.DecimalField(max_digits=20, decimal_places=4,null=True, blank=True)
     month = models.CharField(max_length=6, choices=MONTH_CHOICES)
     final_result = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True,editable=False)
+    active = models.BooleanField(default=True)
 
     def calculate_final_result(self):
         # Nếu target_input hoặc achivement là None thì final_result = 0

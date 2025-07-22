@@ -1,0 +1,36 @@
+{% extends "kpi_app/base.html" %} {% load static %} {% load percent %} {% block
+main_content %}
+<div class="container mt-4">
+  <h2>Manage KPI Result</h2>
+  <form method="get" action="">
+    <div class="form-group mb-3">
+      <label for="year">Year:</label>
+      <select id="year" name="year" class="form-control">
+        {% for y in years %}
+        <option value="{{ y }}">{{ y }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group mb-3">
+      <label for="semester">Semester:</label>
+      <select id="semester" name="semester" class="form-control">
+        {% for s in semesters %}
+        <option value="{{ s }}">{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group mb-3">
+      <label>Active status:</label><br />
+      <input type="radio" id="active" name="active" value="true" checked />
+      <label for="active">Active</label>
+      <input type="radio" id="inactive" name="active" value="false" />
+      <label for="inactive">Inactive</label>
+    </div>
+    {% if messages %} {% for message in messages %} {% if message and
+    forloop.first %}
+    <div class="alert alert-success">{{ message }}</div>
+    {% endif %} {% endfor %} {% endif %}
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</div>
+{% endblock main_content %}

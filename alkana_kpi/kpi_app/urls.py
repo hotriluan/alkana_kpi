@@ -9,4 +9,5 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('accounts/logout/', views.user_logout, name='accounts_logout'),
     path('export-alk-kpi-result/', views.export_alk_kpi_result, name='export_alk_kpi_result'),  # Thêm url xuất báo cáo
+    path('manage/', views.manage_kpi_result, name='manage_kpi_result'),
 ]
