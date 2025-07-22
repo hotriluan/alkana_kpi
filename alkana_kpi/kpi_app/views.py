@@ -192,6 +192,8 @@ def export_alk_kpi_result(request):
     return response
 
 def manage_kpi_result(request):
+    if not request.user.is_superuser:
+        return redirect('/admin/')
     years = alk_kpi_result.objects.values_list('year', flat=True).distinct().order_by('year')
     semesters = alk_kpi_result.objects.values_list('semester', flat=True).distinct().order_by('semester')
     if request.method == 'GET':
@@ -202,7 +204,11 @@ def manage_kpi_result(request):
         if 'year' in request.GET and 'semester' in request.GET and 'active' in request.GET:
             is_active = True if active == 'true' else False
             alk_kpi_result.objects.filter(year=year, semester=semester).update(active=is_active)
-            messages.success(request, f"Đã cập nhật trạng thái active cho các KPI Result năm {year}, học kỳ {semester}!")
+            if not request.path.startswith('/admin/'):
+                from django.utils.safestring import mark_safe
+                year_link = f'<a href="?year={year}">{year}</a>'
+                semester_link = f'<a href="?semester={semester}">{semester}</a>'
+                messages.success(request, mark_safe(f"Đã cập nhật trạng thái active cho các KPI Result năm {year_link}, Semester {semester_link}!"))
         context = {
             'years': years,
             'semesters': semesters,

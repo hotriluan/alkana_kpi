@@ -25,6 +25,9 @@
       <input type="radio" id="inactive" name="active" value="false" />
       <label for="inactive">Inactive</label>
     </div>
+    {% if messages %} {% for message in messages %} {% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+    {% endif %} {% endfor %} {% endif %}
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 </div>
