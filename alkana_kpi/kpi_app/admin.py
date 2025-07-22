@@ -94,6 +94,14 @@ class alk_kpiAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     # list_display_links = None
 
 class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    def has_change_permission(self, request, obj=None):
+        # Superuser được edit tất cả
+        if request.user.is_superuser:
+            return super().has_change_permission(request, obj)
+        # Các user khác chỉ edit khi active=True
+        if obj is not None and hasattr(obj, 'active') and not obj.active:
+            return False
+        return super().has_change_permission(request, obj)
     """
     Quản trị kết quả KPI (alk_kpi_result) trong admin.
     - Hỗ trợ import/export với resource riêng.
