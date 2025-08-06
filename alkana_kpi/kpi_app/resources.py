@@ -135,7 +135,7 @@ class AlkKpiResultImportResource(resources.ModelResource):
     min = fields.Field(attribute='min', column_name='min')
     target_set = fields.Field(attribute='target_set', column_name='target_set')
     max = fields.Field(attribute='max', column_name='max')
-    target_input = fields.Field(attribute='target_input', column_name='Target Input')
+    target_input = fields.Field(attribute='target_input', column_name='target_input')
     achivement = fields.Field(attribute='achivement', column_name='achivement')
     month = fields.Field(attribute='month', column_name='month')
 
