@@ -16,9 +16,9 @@ class alk_deptAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     - Hiển thị, tìm kiếm, lọc và phân trang danh sách phòng ban.
     """
     resource_class = alk_deptResource  # Sử dụng resource để import/export.
-    list_display = ('dept_id', 'dept_name', 'active')  # Hiển thị các trường này trong danh sách.
-    search_fields = ('dept_name',)  # Cho phép tìm kiếm theo tên phòng ban.
-    list_filter = ('active',)  # Lọc theo trạng thái hoạt động.
+    list_display = ('dept_id', 'dept_name', 'group', 'active')  # Hiển thị các trường này trong danh sách.
+    search_fields = ('dept_name', 'group')  # Cho phép tìm kiếm theo tên phòng ban và nhóm.
+    list_filter = ( 'group', 'active',)  # Lọc theo trạng thái hoạt động.
     # list_editable = ('dept_name', 'active')  # Cho phép chỉnh sửa trực tiếp các trường này.
     list_per_page = 15  # Phân trang, mỗi trang 15 dòng
 
@@ -236,6 +236,7 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         Phân quyền xem dữ liệu KPI:
         - Superuser: xem tất cả.
         - Employee level 1: xem KPI của toàn bộ phòng ban.
+        - Employee level 0: xem KPI của tất cả employee có cùng alk_dept.group với mình.
         - Khác: chỉ xem KPI của chính mình.
         """
         qs = super().get_queryset(request)
@@ -249,6 +250,14 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         if employee.level == 1:
             # Xem được KPI của toàn bộ phòng ban của employee đó
             return qs.filter(employee__dept=employee.dept)
+        elif employee.level == 0:
+            # Xem được KPI của tất cả employee có cùng alk_dept.group với mình
+            dept_group = employee.dept.group if employee.dept and hasattr(employee.dept, 'group') else None
+            if dept_group:
+                depts_in_group = alk_dept.objects.filter(group=dept_group)
+                return qs.filter(employee__dept__in=depts_in_group)
+            else:
+                return qs.none()
         else:
             # Chỉ xem KPI của chính mình
             return qs.filter(employee__user_id=user)
@@ -446,6 +455,7 @@ class KpiUserFilter(SimpleListFilter):
     """
     Bộ lọc KPI theo user:
     - Superuser: xem tất cả KPI.
+    - Employee level 0: xem KPI của tất cả employee có cùng alk_dept.group với mình.
     - Employee level 1: xem KPI của phòng ban.
     - Khác: chỉ xem KPI đã có bản ghi alk_kpi_result cho employee đó.
     """
@@ -464,6 +474,17 @@ class KpiUserFilter(SimpleListFilter):
             if employee.level == 1:
                 # KPI của toàn bộ phòng ban
                 kpis = alk_kpi.objects.filter(dept_obj__alk_dept__alk_employee__dept=employee.dept).distinct()
+            elif employee.level == 0:
+                # KPI của employee có cùng alk_dept.group với alk_dept.group của employee đó
+                dept_group = employee.dept.group if employee.dept and hasattr(employee.dept, 'group') else None
+                if dept_group:
+                    # Lấy tất cả employee thuộc các phòng ban cùng group
+                    depts_in_group = alk_dept.objects.filter(group=dept_group)
+                    employees_in_group = alk_employee.objects.filter(dept__in=depts_in_group)
+                    emp_kpis = alk_kpi_result.objects.filter(employee__in=employees_in_group).values_list('kpi', flat=True)
+                    kpis = alk_kpi.objects.filter(id__in=emp_kpis).distinct()
+                else:
+                    kpis = alk_kpi.objects.none()
             else:
                 # KPI chỉ của employee đó (chỉ những KPI đã có bản ghi alk_kpi_result cho employee này)
                 emp_kpis = alk_kpi_result.objects.filter(employee=employee).values_list('kpi', flat=True)

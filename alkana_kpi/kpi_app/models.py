@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 class alk_dept(models.Model):
     dept_id = models.AutoField(primary_key=True)
     dept_name = models.CharField(max_length=100, unique=True)
+    group = models.CharField(max_length=100,default='',null=True)
     active = models.BooleanField(default=True)
     class Meta:
         ordering = ['dept_name']
@@ -56,6 +57,7 @@ class alk_employee(models.Model):
     dept = models.ForeignKey('alk_dept', on_delete=models.CASCADE)
     dept_gr = models.ForeignKey('alk_dept_group', on_delete=models.CASCADE)
     LEVEL_CHOICES = [
+        (0, 'Level 0'),
         (1, 'Level 1'),
         (2, 'Level 2'),
         (3, 'Level 3'),

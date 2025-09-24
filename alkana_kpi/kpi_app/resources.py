@@ -8,11 +8,12 @@ from django.contrib.auth.models import User
 class alk_deptResource(resources.ModelResource):
     # Định nghĩa trường dept_name và active để ánh xạ với cột tương ứng trong file import/export.
     dept_name = fields.Field(attribute='dept_name', column_name='dept_name')
+    group = fields.Field(attribute='group', column_name='group')
     active = fields.Field(attribute='active', column_name='active', widget=BooleanWidget())
     class Meta:
         model = alk_dept
         import_id_fields = ('dept_name',)  # Sử dụng dept_name làm khóa định danh khi import.
-        fields = ('dept_name', 'active')   # Chỉ import/export hai trường này.
+        fields = ('dept_name', 'group', 'active')   # Chỉ import/export ba trường này.
 
 # Lớp tài nguyên cho model alk_job_title, dùng để import/export dữ liệu chức danh công việc.
 class alk_job_titleResource(resources.ModelResource):
