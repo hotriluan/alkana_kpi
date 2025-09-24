@@ -154,12 +154,12 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
     search_fields = ('year', 'semester', 'employee__name', 'employee__user_id__username', 'kpi__kpi_name')
     list_filter = (
-        'year', 'semester', 'month',
+        'year', 'semester', 'month','employee__dept',
         'kpi__kpi_type',
         'kpi__percentage_cal',
         'kpi__get_1_is_zero',
         'kpi__from_sap',
-        'employee__dept',
+        
     )
 
     class Media:
