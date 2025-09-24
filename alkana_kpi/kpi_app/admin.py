@@ -159,6 +159,7 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'kpi__percentage_cal',
         'kpi__get_1_is_zero',
         'kpi__from_sap',
+        'employee__dept',
     )
 
     class Media:
