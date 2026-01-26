@@ -23,6 +23,7 @@ def redirect_root(request):
     return HttpResponseRedirect('/admin/')
 
 urlpatterns = [
+    path('admin/login/', views.user_login), # Change default admin login to custom view
     path('admin/', admin.site.urls),
     path('', redirect_root),
     path('', include('kpi_app.urls')),
