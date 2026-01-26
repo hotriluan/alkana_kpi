@@ -1,0 +1,86 @@
+<tr id="row-{{ result.id }}" class="fade-in-up">
+    <!-- 1. KPI Name (Left Aligned) -->
+    <td class="ps-4">
+        <div class="fw-bold text-dark">{{ result.kpi.kpi_name }}</div>
+        <div class="small text-secondary text-truncate" style="max-width: 250px;" title="{{ result.kpi.description }}">
+            {{ result.kpi.description|default:"" }}
+        </div>
+    </td>
+
+    <!-- 2. Weight (Center Aligned) -->
+    <td class="text-center">
+        <span class="badge bg-light text-dark border">{{ result.display_weight }}</span>
+    </td>
+
+    <!-- 3. Target Set (Right Aligned) -->
+    <td class="text-end font-monospace text-secondary fw-medium text-nowrap">
+        {{ result.display_target_set }}
+    </td>
+
+    <!-- 4. Target Input (Right Aligned) -->
+    <td class="text-end">
+        {% if not result.is_locked and result.kpi.percentage_cal %}
+        <div class="position-relative">
+            <input type="text" class="form-control input-glass font-monospace py-1 text-end" name="target_input"
+                value="{{ result.form_value_target_input|default:'' }}" hx-post="{% url 'portal_save_kpi' result.id %}"
+                hx-trigger="change delay:500ms" hx-target="#row-{{ result.id }}" hx-swap="outerHTML"
+                placeholder="Target...">
+        </div>
+        {% else %}
+        <div class="font-monospace text-dark text-nowrap">
+            {{ result.display_target_input|default:"-" }}
+        </div>
+        {% endif %}
+    </td>
+
+    <!-- 5. Achievement (Right Aligned) -->
+    <td class="text-end">
+        {% if result.is_locked or result.kpi.from_sap %}
+        <div
+            class="d-flex align-items-center justify-content-end text-nowrap {% if result.is_locked %}text-success fw-bold{% else %}text-secondary{% endif %}">
+            {% if result.is_locked %}<i class="bi bi-lock-fill me-2"></i>{% endif %}
+            {% if result.kpi.from_sap %}<i class="bi bi-robot me-2" title="From SAP"></i>{% endif %}
+            {{ result.display_achivement|default:"-" }}
+        </div>
+        {% else %}
+        <div class="position-relative">
+            <input type="text" class="form-control input-glass font-monospace py-1 text-end" name="achivement"
+                value="{{ result.form_value_achivement|default:'' }}" hx-post="{% url 'portal_save_kpi' result.id %}"
+                hx-trigger="change delay:500ms" hx-target="#row-{{ result.id }}" hx-swap="outerHTML"
+                placeholder="Achieve...">
+
+            <!-- Validation Warning Container -->
+            {% if warning_msg %}
+            <div class="text-danger small mt-1 text-end">
+                <i class="bi bi-exclamation-triangle me-1"></i> {{ warning_msg }}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </td>
+
+    <!-- 6. Score (Center Aligned) -->
+    <td class="text-center">
+        {% if result.display_final_result %}
+        <span
+            class="fw-bold {% if result.final_result >= 100 %}text-success{% elif result.final_result < 50 %}text-danger{% else %}text-dark{% endif %}">
+            {{ result.display_final_result }}
+        </span>
+        {% else %}
+        <span class="text-muted">-</span>
+        {% endif %}
+    </td>
+
+    <!-- 7. Status (Right Aligned) -->
+    <td class="text-end pe-4">
+        {% if result.is_locked %}
+        <span class="status-badge status-approved">
+            <i class="bi bi-check-circle-fill"></i> Approved
+        </span>
+        {% else %}
+        <span class="status-badge status-pending">
+            <i class="bi bi-clock"></i> Pending
+        </span>
+        {% endif %}
+    </td>
+</tr>

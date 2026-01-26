@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import alk_employee, alk_job_title, alk_dept, alk_dept_group, alk_kpi_result
+from kpi_app.models import alk_employee, alk_job_title, alk_dept, alk_dept_group, alk_kpi_result
 from django.contrib.auth import update_session_auth_hash
 import csv
 import pandas as pd
@@ -76,6 +76,16 @@ def user_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+            # Redirect logic based on Level
+            try:
+                # Check for employee profile
+                emp = alk_employee.objects.get(user_id=user)
+                if emp.level >= 2: # Employee, Team Lead, etc.
+                    return redirect('portal_dashboard')
+            except alk_employee.DoesNotExist:
+                pass
+            
+            # Default redirect
             return redirect('home')
         else:
             from django.contrib.auth.forms import AuthenticationForm

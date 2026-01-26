@@ -6,6 +6,7 @@ from .resources import alk_deptResource, alk_job_titleResource, alk_perspectiveR
 from django.contrib.admin import SimpleListFilter
 from django.db import models
 from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 #test
 
 # Đăng ký model alk_dept với giao diện admin, hỗ trợ import/export và các tuỳ chỉnh hiển thị.
@@ -118,6 +119,7 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         return AlkKpiResultExportResource
 
     list_display = (
+        'get_approved_status', # Sử dụng custom method thay vì field gốc
         'year',
         'semester',
         'get_dept',
@@ -143,6 +145,32 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         'get_get_1_is_zero',
         'get_kpi_from_sap',
     )
+
+    # ... Media class ...
+
+    # CUSTOM DISPLAY METHOD FOR APPROVED STATUS
+    def get_approved_status(self, obj):
+        if obj.is_locked:
+            return format_html(
+                '<span class="approved-status-indicator" data-approved="true">'
+                '<img src="/static/admin/img/icon-yes.svg" alt="True">'
+                '</span>'
+            )
+        return format_html(
+            '<span class="approved-status-indicator" data-approved="false">'
+            '<img src="/static/admin/img/icon-no.svg" alt="False">'
+            '</span>'
+        )
+    get_approved_status.short_description = "Approved"
+    get_approved_status.admin_order_field = 'is_locked' # Allow sorting
+
+    # Class Media configuration
+    class Media:
+        # Thêm CSS cho giao diện admin (cuộn ngang)
+        css = {
+            'all': ('kpi_app/css/admin_horizontal_scroll.css',)
+        }
+        js = ('admin/js/jquery.init.js', 'kpi_app/js/admin_lock_highlight.js',)
     fields = [
         'year', 'semester', 'employee', 'kpi', 'weigth', 'min', 'target_set', 'max',
         'target_input', 'achivement', 'month'
@@ -153,7 +181,81 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     readonly_fields = ('year', 'semester', 'weigth', 'target_set', 'month', 'min', 'final_result')
 
     search_fields = ('year', 'semester', 'employee__name', 'employee__user_id__username', 'kpi__kpi_name')
+    @admin.action(description='[APPROVE] Mark selected as Approved')
+    def lock_kpi_results(self, request, queryset):
+        # Superuser: Lock ALL
+        if request.user.is_superuser:
+            updated = queryset.update(is_locked=True)
+            self.message_user(request, f"Successfully approved {updated} records.")
+            return
+
+        try:
+            employee = alk_employee.objects.get(user_id=request.user)
+            # Level 0: Lock employees in same Dept Group
+            if employee.level == 0:
+                dept_group = employee.dept.group
+                if dept_group:
+                    # Filter queryset to only include records from employees in the same group
+                    depts_in_group = alk_dept.objects.filter(group=dept_group)
+                    valid_qs = queryset.filter(employee__dept__in=depts_in_group)
+                    updated = valid_qs.update(is_locked=True)
+                    self.message_user(request, f"Successfully approved {updated} records (Group Scope).")
+                    if updated < queryset.count():
+                        self.message_user(request, "Some records were skipped due to permission scope.", level='WARNING')
+                else:
+                    self.message_user(request, "Your Department Group is not defined.", level='ERROR')
+            
+            # Level 1: Lock employees in same Dept
+            elif employee.level == 1:
+                valid_qs = queryset.filter(employee__dept=employee.dept)
+                updated = valid_qs.update(is_locked=True)
+                self.message_user(request, f"Successfully approved {updated} records (Dept Scope).")
+                if updated < queryset.count():
+                     self.message_user(request, "Some records were skipped due to permission scope.", level='WARNING')
+            
+            else:
+                self.message_user(request, "Permission Denied: You cannot approve records.", level='ERROR')
+
+        except alk_employee.DoesNotExist:
+             self.message_user(request, "Employee profile not found.", level='ERROR')
+
+    @admin.action(description='[PENDING] Set selected as Pending (Unlock)')
+    def unlock_kpi_results(self, request, queryset):
+        # Superuser: Unlock ALL
+        if request.user.is_superuser:
+            updated = queryset.update(is_locked=False)
+            self.message_user(request, f"Successfully set {updated} records to Pending.")
+            return
+
+        try:
+            employee = alk_employee.objects.get(user_id=request.user)
+            # Level 0: Unlock employees in same Dept Group
+            if employee.level == 0:
+                dept_group = employee.dept.group
+                if dept_group:
+                    depts_in_group = alk_dept.objects.filter(group=dept_group)
+                    valid_qs = queryset.filter(employee__dept__in=depts_in_group)
+                    updated = valid_qs.update(is_locked=False)
+                    self.message_user(request, f"Successfully set {updated} records to Pending (Group Scope).")
+                else:
+                     self.message_user(request, "Your Department Group is not defined.", level='ERROR')
+            
+            # Level 1: Unlock employees in same Dept
+            elif employee.level == 1:
+                valid_qs = queryset.filter(employee__dept=employee.dept)
+                updated = valid_qs.update(is_locked=False)
+                self.message_user(request, f"Successfully set {updated} records to Pending (Dept Scope).")
+            
+            else:
+                self.message_user(request, "Permission Denied: You cannot revert records to Pending.", level='ERROR')
+
+        except alk_employee.DoesNotExist:
+             self.message_user(request, "Employee profile not found.", level='ERROR')
+
+    actions = [lock_kpi_results, unlock_kpi_results]
+
     list_filter = (
+        'is_locked', # Add filter
         'year', 'semester', 'month','employee__dept',
         'kpi__kpi_type',
         'kpi__percentage_cal',
@@ -162,11 +264,7 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         
     )
 
-    class Media:
-        # Thêm CSS cho giao diện admin (cuộn ngang)
-        css = {
-            'all': ('kpi_app/css/admin_horizontal_scroll.css',)
-        }
+
 
     # Các hàm get_* dùng để hiển thị thông tin liên kết từ các model liên quan
     def get_employee_name(self, obj):
@@ -278,10 +376,32 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         - Nếu percentage_cal=False: trường target_input readonly.
         """
         ro = list(self.readonly_fields)
+        user = request.user
+        
+        # --- NEW LOGIC: CHECK LOCK STATUS ---
+        if obj and hasattr(obj, 'is_locked') and obj.is_locked:
+            # Check user level
+            user_level = 2 # Default to restricted/End User
+            if user.is_superuser:
+                user_level = -1 # Superuser has special privileges
+            else:
+                try:
+                    emp = alk_employee.objects.get(user_id=user)
+                    user_level = emp.level
+                except alk_employee.DoesNotExist:
+                    pass
+            
+            # If User is Level 2 (Regular Employee) or higher numerical value -> READONLY
+            if user_level >= 2:
+                # Return ALL fields as readonly
+                return [f.name for f in self.model._meta.fields]
+
+        # --- END NEW LOGIC ---
+
         # Đảm bảo 'employee' luôn readonly
         if 'employee' not in ro:
             ro.append('employee')
-        user = request.user
+        
         # Kiểm tra nếu user là superuser thì luôn cho sửa kpi và target_set
         if user.is_superuser:
             if 'kpi' in ro:

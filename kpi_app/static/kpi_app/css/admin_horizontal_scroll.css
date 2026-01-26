@@ -10,3 +10,11 @@
 .change-list .results table td {
     white-space: nowrap;
 }
+
+tr.row-locked td, tr.row-locked th {
+    background-color: #f8f9fa !important; /* Light gray background */
+    color: #6c757d !important; /* Muted text color */
+}
+tr.row-locked:hover td, tr.row-locked:hover th {
+    background-color: #e9ecef !important; /* Slightly darker on hover */
+}
