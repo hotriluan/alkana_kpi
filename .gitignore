@@ -35,4 +35,6 @@ desktop.ini
 
 # Project-specific
 /alkana_kpi_backup/
-alkana_kpi/settings.py
+# alkana_kpi/settings.py
+venv/
+.venv/
