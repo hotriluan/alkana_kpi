@@ -1,0 +1,250 @@
+{% extends 'kpi_app/portal/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container pb-5" style="margin-bottom: 80px;">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body py-3">
+                    <form method="get" class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="small text-muted fw-bold">REVIEWING EMPLOYEE</label>
+                            <div class="fw-bold fs-5 text-primary">{{ target_emp.name }}</div>
+                            <div class="small text-muted">{{ target_emp.job_title }}</div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="small text-muted fw-bold">YEAR</label>
+                            <input type="text" class="form-control bg-white" name="year" value="{{ current_year }}"
+                                readonly>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="small text-muted fw-bold">SEMESTER</label>
+                            <input type="text" class="form-control bg-white" name="sem" value="{{ current_sem }}"
+                                readonly>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="small text-muted fw-bold">MONTH</label>
+                            <select name="month" class="form-select border-primary fw-bold"
+                                onchange="this.form.submit()">
+                                {% for m in months %}
+                                <option value="{{ m }}" {% if current_month == m %}selected{% endif %}>
+
+                                    {{ m }} Month
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Keep Search for convenience if possible, or remove if strictly following 'replacement' -->
+    <div class="mb-3">
+        <input type="text" id="kpiSearch" class="form-control" placeholder="🔍 Filter KPI Name..."
+            onkeyup="filterTable()">
+    </div>
+
+    <!-- MAIN CONTENT CARD -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <form id="approvalForm">
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="kpiTable">
+                        <thead class="table-light text-uppercase small text-muted">
+                            <tr>
+                                <th class="ps-4" style="width: 40px;">
+                                    <input type="checkbox" class="form-check-input border-dark"
+                                        onclick="toggleAll(this)">
+                                </th>
+                                <th>KPI Name</th>
+                                <th class="text-center">Weight</th>
+                                <th class="text-end">Target Set</th>
+                                <th class="text-end">Target Input</th>
+                                <th class="text-end">Achievement</th>
+                                <th class="text-center">Score</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="kpi-table-body" hx-get="." hx-trigger="kpi_table_update from:body" hx-target="this"
+                            hx-select="#kpi-table-body" hx-swap="outerHTML">
+                            {% for result in results %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <input type="checkbox" class="form-check-input kpi-chk border-secondary me-2"
+                                            name="selected_kpi" value="{{ result.id }}">
+                                        {% if result.is_locked %}
+                                        <i class="bi bi-lock-fill text-success small" title="Currently Approved"></i>
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <td class="fw-bold text-dark">
+                                    {{ result.kpi.kpi_name }}
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border">{{ result.display_weight }}</span>
+                                </td>
+
+                                <td class="text-end text-muted font-monospace">
+                                    {{ result.display_target_set }}
+                                </td>
+
+                                <td class="text-end position-relative" style="width: 150px;">
+                                    {% if not result.is_locked and result.kpi.percentage_cal %}
+                                    <input type="text"
+                                        class="form-control form-control-sm text-end font-monospace text-muted"
+                                        name="target_input_{{ result.id }}"
+                                        value="{{ result.form_value_target_input|default:'' }}" placeholder="-"
+                                        hx-post="{% url 'manager_save_kpi' result.id %}"
+                                        hx-trigger="change delay:500ms, blur" hx-swap="none"
+                                        hx-indicator="#spinner-ti-{{ result.id }}"
+                                        onkeydown="if(event.key==='Enter'){event.preventDefault(); this.blur();}">
+                                    <div id="spinner-ti-{{ result.id }}"
+                                        class="htmx-indicator position-absolute top-50 end-0 translate-middle-y me-2">
+                                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                            <span class="visually-hidden">Saving...</span>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted font-monospace">
+                                        {{ result.display_target_input|default:"-" }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end position-relative" style="width: 160px;">
+                                    {% if result.is_locked or result.kpi.from_sap %}
+                                    <div class="d-flex justify-content-end align-items-center gap-2">
+                                        {% if result.kpi.from_sap %}
+                                        <i class="bi bi-robot text-primary" title="Auto-imported from SAP"></i>
+                                        {% endif %}
+
+                                        <span
+                                            class="fw-bold {% if result.is_locked %}text-success{% else %}text-secondary{% endif %} font-monospace fs-5">
+                                            {{ result.display_achievement }}
+                                        </span>
+                                    </div>
+                                    {% else %}
+                                    <input type="text"
+                                        class="form-control form-control-sm text-end fw-bold font-monospace"
+                                        name="achievement_{{ result.id }}"
+                                        value="{{ result.form_value_achievement|default:'' }}" placeholder="-"
+                                        hx-post="{% url 'manager_save_kpi' result.id %}"
+                                        hx-trigger="change delay:500ms, blur" hx-swap="none"
+                                        hx-indicator="#spinner-ach-{{ result.id }}"
+                                        onkeydown="if(event.key==='Enter'){event.preventDefault(); this.blur();}">
+                                    <div id="spinner-ach-{{ result.id }}"
+                                        class="htmx-indicator position-absolute top-50 end-0 translate-middle-y me-2">
+                                        <div class="spinner-border spinner-border-sm text-success" role="status">
+                                            <span class="visually-hidden">Saving...</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-center">
+                                    <span
+                                        class="fw-bold fs-5 {% if result.final_result >= 1 %}text-success{% elif result.final_result < 0.5 %}text-danger{% else %}text-dark{% endif %}">
+                                        {{ result.display_final_result }}
+                                    </span>
+                                </td>
+
+                                <td class="text-center">
+                                    {% if result.is_locked %}
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-lock-fill"></i>
+                                        Approved</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark rounded-pill"><i
+                                            class="bi bi-hourglass"></i> Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center p-5 text-muted">No KPIs found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+
+                        <tfoot class="border-top border-2 border-secondary">
+                            <tr class="bg-light">
+                                <td colspan="6" class="text-end pe-4 py-3">
+                                    <span class="text-uppercase text-muted fw-bold small">Total Score:</span>
+                                </td>
+
+                                <td class="text-center py-3">
+                                    <span class="fs-4 fw-bold text-primary">
+                                        {{ total_score|floatformat:2 }}%
+                                    </span>
+                                </td>
+
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- STICKY FOOTER ACTIONS -->
+<div class="fixed-bottom bg-white border-top shadow-lg p-3" style="z-index: 1050;">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div id="action-response" class="text-muted">
+            <i class="bi bi-info-circle me-1"></i> Select items to approve...
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'manager_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+
+            <button class="btn btn-outline-danger" hx-post="{% url 'manager_toggle_approval' target_emp.id %}"
+                hx-vals='{"action": "reject"}' hx-include="#approvalForm" hx-target="#action-response">
+                <i class="bi bi-unlock me-1"></i> Unlock Selected
+            </button>
+            <button class="btn btn-success" hx-post="{% url 'manager_toggle_approval' target_emp.id %}"
+                hx-vals='{"action": "approve"}' hx-include="#approvalForm" hx-target="#action-response">
+                <i class="bi bi-check-circle-fill me-1"></i> Approve Selected
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleAll(source) {
+        checkboxes = document.querySelectorAll('.kpi-chk');
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = source.checked;
+        }
+    }
+
+    function filterTable() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("kpiSearch");
+        filter = input.value.toUpperCase();
+        table = document.querySelector("table");
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[1]; // KPI Name column
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}

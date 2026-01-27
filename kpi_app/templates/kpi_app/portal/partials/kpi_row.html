@@ -1,4 +1,11 @@
 <tr id="row-{{ result.id }}" class="fade-in-up">
+    <!-- 0. Bulk Checkbox (Conditional) -->
+    {% if show_checkbox %}
+    <td class="text-center">
+        <input type="checkbox" class="form-check-input kpi-checkbox" name="selected_kpi" value="{{ result.id }}">
+    </td>
+    {% endif %}
+
     <!-- 1. KPI Name (Left Aligned) -->
     <td class="ps-4">
         <div class="fw-bold text-dark">{{ result.kpi.kpi_name }}</div>
@@ -19,12 +26,11 @@
 
     <!-- 4. Target Input (Right Aligned) -->
     <td class="text-end">
-        {% if not result.is_locked and result.kpi.percentage_cal %}
+        {% if not result.is_locked and result.kpi.percentage_cal or is_manager and result.kpi.percentage_cal %}
         <div class="position-relative">
             <input type="text" class="form-control input-glass font-monospace py-1 text-end" name="target_input"
                 value="{{ result.form_value_target_input|default:'' }}" hx-post="{% url 'portal_save_kpi' result.id %}"
-                hx-trigger="change delay:500ms" hx-target="#row-{{ result.id }}" hx-swap="outerHTML"
-                placeholder="Target...">
+                hx-trigger="change delay:500ms" hx-target="#row-{{ result.id }}" hx-swap="outerHTML" {% if show_checkbox %}hx-vals='{"show_checkbox": "true"}'{% endif %} placeholder="Target...">
         </div>
         {% else %}
         <div class="font-monospace text-dark text-nowrap">
@@ -35,19 +41,18 @@
 
     <!-- 5. Achievement (Right Aligned) -->
     <td class="text-end">
-        {% if result.is_locked or result.kpi.from_sap %}
+        {% if result.is_locked and not is_manager or result.kpi.from_sap %}
         <div
             class="d-flex align-items-center justify-content-end text-nowrap {% if result.is_locked %}text-success fw-bold{% else %}text-secondary{% endif %}">
             {% if result.is_locked %}<i class="bi bi-lock-fill me-2"></i>{% endif %}
             {% if result.kpi.from_sap %}<i class="bi bi-robot me-2" title="From SAP"></i>{% endif %}
-            {{ result.display_achivement|default:"-" }}
+            {{ result.display_achievement|default:"-" }}
         </div>
         {% else %}
         <div class="position-relative">
-            <input type="text" class="form-control input-glass font-monospace py-1 text-end" name="achivement"
-                value="{{ result.form_value_achivement|default:'' }}" hx-post="{% url 'portal_save_kpi' result.id %}"
-                hx-trigger="change delay:500ms" hx-target="#row-{{ result.id }}" hx-swap="outerHTML"
-                placeholder="Achieve...">
+            <input type="text" class="form-control input-glass font-monospace py-1 text-end" name="achievement"
+                value="{{ result.form_value_achievement|default:'' }}" hx-post="{% url 'portal_save_kpi' result.id %}"
+                hx-trigger="change delay:500ms" hx-target="#row-{{ result.id }}" hx-swap="outerHTML" {% if show_checkbox %}hx-vals='{"show_checkbox": "true"}'{% endif %} placeholder="Achieve...">
 
             <!-- Validation Warning Container -->
             {% if warning_msg %}

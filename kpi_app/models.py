@@ -119,7 +119,7 @@ class alk_kpi_result(models.Model):
     target_set = models.DecimalField(max_digits=20, decimal_places=4,null=True)
     max = models.DecimalField(max_digits=20, decimal_places=3, default=1.4)
     target_input = models.DecimalField(max_digits=20, decimal_places=4,null=True, blank=True)
-    achivement = models.DecimalField(max_digits=20, decimal_places=4,null=True, blank=True)
+    achievement = models.DecimalField(max_digits=20, decimal_places=4,null=True, blank=True)
     month = models.CharField(max_length=6, choices=MONTH_CHOICES)
     final_result = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True,editable=False)
     active = models.BooleanField(default=True)
@@ -131,12 +131,12 @@ class alk_kpi_result(models.Model):
 
     def calculate_final_result(self):
         # Nếu target_input hoặc achivement là None thì final_result = 0
-        if self.target_input is None or self.achivement is None:
+        if self.target_input is None or self.achievement is None:
             return 0
         temp_result = 0
         temp_achive = 0
         # Lấy các biến cần thiết
-        achivement = self.achivement or 0
+        achievement = self.achievement or 0
         target_set = self.target_set or 0
         target_input = self.target_input or 0
         weigth = self.weigth or 0
@@ -147,28 +147,28 @@ class alk_kpi_result(models.Model):
         get_1_is_zero = self.kpi.get_1_is_zero if self.kpi else False
 
         if get_1_is_zero:
-            if achivement > 0:
+            if achievement > 0:
                 return 0
             else:
                 return weigth * max_val
         else:
             if kpi_type == 3:
-                if achivement == 0:
+                if achievement == 0:
                     temp_result = max_val
                 else:
-                    temp_result = target_set / achivement if achivement else 0
+                    temp_result = target_set / achievement if achievement else 0
             else:
                 if percentage_cal:
-                    temp_achive = achivement / target_input if target_input else 0
+                    temp_achive = achievement / target_input if target_input else 0
                     if kpi_type == 1:
                         temp_result = temp_achive / target_set if target_set else 0
                     elif kpi_type == 2:
                         temp_result = target_set / temp_achive if temp_achive else 0
                 else:
                     if kpi_type == 1:
-                        temp_result = achivement / target_input if target_input else 0
+                        temp_result = achievement / target_input if target_input else 0
                     elif kpi_type == 2:
-                        temp_result = target_input / achivement if achivement else 0
+                        temp_result = target_input / achievement if achievement else 0
         # Xử lý theo min/max
         if temp_result < min_val:
             return 0

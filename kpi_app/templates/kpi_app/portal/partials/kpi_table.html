@@ -1,0 +1,36 @@
+<div class="glass-card overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-glass align-middle">
+            <thead>
+                <tr class="small text-uppercase text-secondary">
+                    <th class="ps-4" style="width: 28%;">KPI Name</th>
+                    <th class="text-center" style="width: 8%;">Weight</th>
+                    <th class="text-end" style="width: 12%;">Target Set</th>
+                    <th class="text-end" style="width: 18%;">Target Input</th>
+                    <th class="text-end" style="width: 18%;">Achievement</th>
+                    <th class="text-center" style="width: 8%;">Score</th>
+                    <th class="text-end pe-4" style="width: 8%;">Status</th>
+                </tr>
+            </thead>
+            <tbody id="kpi-table-body">
+                {% for result in table_rows %}
+                {% include 'kpi_app/portal/partials/kpi_row.html' with result=result is_manager=is_manager %}
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
+                        No KPIs found for this selection.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="border-top">
+                <tr class="fw-bold bg-light">
+                    <td colspan="5" class="text-end pe-4">Total Score:</td>
+                    <td class="text-start ps-0 text-primary">{{ total_score }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>

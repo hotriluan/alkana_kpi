@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize', # Required for |floatformat:2 and other filters
     #'kpi_app.apps.KpiAppConfig',  # Đảm bảo tên ứng dụng là 'kpi_app'
     'import_export',  # Thêm ứng dụng django-import-export
     'kpi_app',  # Đảm bảo tên ứng dụng là 'kpi_app'

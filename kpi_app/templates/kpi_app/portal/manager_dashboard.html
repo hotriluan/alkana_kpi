@@ -31,6 +31,24 @@
 </div>
 
 <!-- Stats Row -->
+{% if no_kpi_count > 0 %}
+<div class="alert alert-warning d-flex align-items-center justify-content-between shadow-sm border-warning"
+    role="alert">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+        <div>
+            <h5 class="alert-heading fw-bold mb-0">Data Integrity Warning</h5>
+            <p class="mb-0">
+                Found <strong>{{ no_kpi_count }}</strong> employees with NO KPIs. They are excluded from statistics.
+            </p>
+        </div>
+    </div>
+    <button type="button" class="btn btn-warning text-dark fw-bold border-dark bg-opacity-25" data-bs-toggle="modal"
+        data-bs-target="#missingKpiModal">
+        <i class="bi bi-list-ul me-1"></i> View List
+    </button>
+</div>
+{% endif %}
 <div class="row g-4 mb-4">
     <div class="col-md-3">
         <div class="glass-card stat-card p-4 h-100">
@@ -98,69 +116,58 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="text-secondary small text-uppercase bg-light">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <th scope="col" style="width: 15%">Alert Type</th>
-                            <th scope="col" style="width: 20%">Employee</th>
-                            <th scope="col" style="width: 25%">KPI Name</th>
-                            <th scope="col" style="width: 20%">The Math</th>
-                            <th scope="col" class="text-end" style="width: 10%">Score</th>
-                            <th scope="col" class="text-end" style="width: 10%">Action</th>
+                            <th style="width: 100px;">Type</th>
+                            <th>Details (Employee / KPI)</th>
+                            <th style="min-width: 120px;">Context</th>
+                            <th class="text-center">Result</th>
+                            <th class="text-end">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in anomalies %}
                         <tr>
-                            <td>
-                                {% if item.final_result > 10.0 %}
-                                <span class="badge bg-danger rounded-pill"><i
-                                        class="bi bi-exclamation-octagon me-1"></i>Typo?</span>
-                                {% elif item.final_result < 0.3 %} <span
-                                    class="badge bg-warning text-dark rounded-pill"><i
-                                        class="bi bi-graph-down-arrow me-1"></i>Low Perf</span>
-                                    {% else %}
-                                    <span class="badge bg-info text-dark rounded-pill"><i
-                                            class="bi bi-search me-1"></i>Review</span>
-                                    {% endif %}
+                            <td style="width: 100px;">
+                                {% if item.alert_reason == 'TYPO' %}
+                                <span class="badge bg-danger">🚨 Typo?</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">📉 Low Perf</span>
+                                {% endif %}
                             </td>
-                            <td>
-                                <div class="fw-bold text-dark">{{ item.employee.name }}</div>
-                                <div class="small text-muted">{{ item.employee.user_id.username }}</div>
-                            </td>
-                            <td>
-                                <div class="text-wrap" style="max-width: 200px;" title="{{ item.kpi.kpi_name }}">
+
+                            <td style="max-width: 250px;">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="fw-bold text-dark me-2">{{ item.employee.name }}</span>
+                                    <span class="badge bg-info text-dark border">{{ item.month }} Month</span>
+                                </div>
+                                <div class="small text-muted text-truncate" title="{{ item.kpi.kpi_name }}">
                                     {{ item.kpi.kpi_name }}
                                 </div>
                             </td>
-                            <td>
+
+                            <td class="bg-light border-start border-end" style="min-width: 120px;">
                                 <div class="d-flex flex-column" style="font-size: 0.85rem;">
-                                    <div class="d-flex justify-content-between">
-                                        <span class="text-muted me-2">Target:</span>
-                                        <span class="fw-bold text-dark">{{ item.display_target_set }}</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <span class="text-muted me-2">Actual:</span>
-                                        <span class="fw-bold text-dark">{{ item.display_achivement }}</span>
-                                    </div>
+                                    <span>🎯 T: <strong>{{ item.target_set }}</strong></span>
+                                    <span>📊 A: <strong>{{ item.achievement|default:"-" }}</strong></span>
                                 </div>
                             </td>
-                            <td class="text-end">
-                                <span
-                                    class="fw-bold {% if item.final_result > 1.25 %}text-danger{% elif item.final_result < 0.5 %}text-warning{% endif %}">
-                                    {{ item.display_final_result }}
-                                </span>
+
+                            <td class="fw-bold fs-5 text-center">
+                                {{ item.final_result|floatformat:1 }}%
                             </td>
+
                             <td class="text-end">
-                                <a href="{% url 'admin:kpi_app_alk_kpi_result_change' item.id %}" target="_blank"
-                                    class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                    View
+                                <a href="{% url 'manager_review_employee' item.employee.id %}?month={{ item.month }}"
+                                    class="btn btn-sm btn-outline-primary">
+                                    Review
                                 </a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
+                            <td colspan="5" class="text-center py-5 text-muted">
                                 <div class="mb-3">
                                     <i class="bi bi-check-circle-fill fs-1 text-success opacity-25"></i>
                                 </div>
@@ -172,6 +179,132 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- ANOMALY PAGINATION -->
+            {% if anomalies.has_other_pages %}
+            <div class="card-footer bg-white border-top py-2">
+                <nav aria-label="Anomaly navigation">
+                    <ul class="pagination pagination-sm justify-content-end mb-0">
+                        {% if anomalies.has_previous %}
+                        <li class="page-item"><a class="page-link"
+                                href="?anomaly_page={{ anomalies.previous_page_number }}">Previous</a></li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                        {% endif %}
+
+                        <li class="page-item disabled"><span class="page-link">{{ anomalies.number }} /
+                                {{ anomalies.paginator.num_pages }}</span></li>
+
+                        {% if anomalies.has_next %}
+                        <li class="page-item"><a class="page-link"
+                                href="?anomaly_page={{ anomalies.next_page_number }}">Next</a></li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Team Overview Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-4">Team Overview</h5>
+            <!-- Search Input -->
+            <div class="mb-3 position-relative">
+                <input type="text" id="teamSearch" class="form-control glass-input ps-5"
+                    placeholder="🔍 Search Employee..." onkeyup="filterTeamTable()">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="teamTable">
+                    <thead class="bg-light text-secondary small text-uppercase">
+                        <tr>
+                            <th style="width: 40%">Employee</th>
+                            <th style="width: 30%">Job Title</th>
+                            <th class="text-center" style="width: 15%">Status</th>
+                            <th class="text-end" style="width: 15%">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in team_data %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle bg-primary bg-opacity-10 text-primary me-3 fw-bold">
+                                        {{ member.employee.name|slice:":1" }}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">{{ member.employee.name }}</h6>
+                                        <small class="text-muted">{{ member.emp_id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="text-secondary">{{ member.job_title }}</span>
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge bg-{{ member.status_class }} text-dark px-3 py-2 rounded-pill">
+                                    {{ member.status }}
+                                </span>
+
+
+                            </td>
+
+                            <td class="text-end">
+                                <a href="{% url 'manager_review_employee' member.employee.id %}?year={{ selected_year }}&semester={{ selected_sem }}&month={{ selected_month }}"
+                                    class="btn btn-primary btn-sm rounded-pill px-4">
+                                    <i class="bi bi-pencil-square me-1"></i> Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="bi bi-people display-4 d-block mb-3"></i>
+                                No team members found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if team_scope.has_other_pages %}
+            <div class="card-footer bg-white border-top-0 d-flex justify-content-center pt-3">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        {% if team_scope.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ team_scope.previous_page_number }}">Previous</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ team_scope.number }} of {{ team_scope.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if team_scope.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ team_scope.next_page_number }}">Next</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -211,5 +344,63 @@
             }
         });
     });
+
+    function filterTeamTable() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("teamSearch");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("teamTable");
+        tr = table.getElementsByTagName("tr");
+
+        // Loop through all table rows, and hide those who don't match the search query
+        for (i = 0; i < tr.length; i++) {
+            // Employee Name is in the 1st Column (index 0)
+            td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+                // Get text from the name div
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
 </script>
+<div class="modal fade" id="missingKpiModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning bg-opacity-10">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-person-exclamation me-2"></i> Employees without KPIs
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for missing in missing_kpi_employees %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle-sm bg-secondary bg-opacity-25 text-secondary fw-bold me-3 rounded-circle d-flex align-items-center justify-content-center"
+                                style="width: 40px; height: 40px;">
+                                {{ missing.employee.name|slice:":1" }}
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark">{{ missing.employee.name }}</h6>
+                                <small class="text-muted">{{ missing.job_title }}</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-secondary">No Data</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="modal-footer bg-light">
+                <small class="text-muted me-auto">Please check Data Entry module.</small>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

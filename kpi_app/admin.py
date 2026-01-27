@@ -136,7 +136,7 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         # 'target_set',
         'max_1f',
         'target_input_1f',
-        'achivement_1f',
+        'achievement_1f',
         'factor_percent_1f',  # Thêm cột Factor ở đây
         'final_result_percent_1f',
         'month',
@@ -151,12 +151,12 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     # CUSTOM DISPLAY METHOD FOR APPROVED STATUS
     def get_approved_status(self, obj):
         if obj.is_locked:
-            return format_html(
+            return mark_safe(
                 '<span class="approved-status-indicator" data-approved="true">'
                 '<img src="/static/admin/img/icon-yes.svg" alt="True">'
                 '</span>'
             )
-        return format_html(
+        return mark_safe(
             '<span class="approved-status-indicator" data-approved="false">'
             '<img src="/static/admin/img/icon-no.svg" alt="False">'
             '</span>'
@@ -173,11 +173,11 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         js = ('admin/js/jquery.init.js', 'kpi_app/js/admin_lock_highlight.js',)
     fields = [
         'year', 'semester', 'employee', 'kpi', 'weigth', 'min', 'target_set', 'max',
-        'target_input', 'achivement', 'month'
+        'target_input', 'achievement', 'month'
     ]
     list_per_page = 15
     list_display_links = ('get_kpi_name',)  # Cho phép nhấp vào tên KPI để xem chi tiết
-    # list_editable = ('target_input', 'achivement','month')
+    # list_editable = ('target_input', 'achievement','month')
     readonly_fields = ('year', 'semester', 'weigth', 'target_set', 'month', 'min', 'final_result')
 
     search_fields = ('year', 'semester', 'employee__name', 'employee__user_id__username', 'kpi__kpi_name')
@@ -410,10 +410,10 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 ro.remove('target_set')
             # from_sap: nếu kpi.from_sap True thì achivement readonly
             if obj and obj.kpi and hasattr(obj.kpi, 'from_sap') and obj.kpi.from_sap:
-                if 'achivement' not in ro:
-                    ro.append('achivement')
-            elif 'achivement' in ro:
-                ro.remove('achivement')
+                if 'achievement' not in ro:
+                    ro.append('achievement')
+            elif 'achievement' in ro:
+                ro.remove('achievement')
             return ro
         # Kiểm tra nếu user có employee level 1
         try:
@@ -431,10 +431,10 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 ro.append('kpi')
         # from_sap: nếu kpi.from_sap True thì achivement readonly
         if obj and obj.kpi and hasattr(obj.kpi, 'from_sap') and obj.kpi.from_sap:
-            if 'achivement' not in ro:
-                ro.append('achivement')
-        elif 'achivement' in ro:
-            ro.remove('achivement')
+            if 'achievement' not in ro:
+                ro.append('achievement')
+        elif 'achievement' in ro:
+            ro.remove('achievement')
         # Logic target_input readonly giữ nguyên
         if obj and obj.kpi and hasattr(obj.kpi, 'percentage_cal'):
             if obj.kpi.percentage_cal is False:
@@ -529,23 +529,23 @@ class AlkKpiResultAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         return ''
     target_input_1f.short_description = 'Target Input'
 
-    def achivement_1f(self, obj):
+    def achievement_1f(self, obj):
         """
-        Hiển thị achivement với 4 chữ số thập phân,
+        Hiển thị achievement với 4 chữ số thập phân,
         hoặc nếu percentage_cal=False và target_set<1 thì hiển thị phần trăm,
         hoặc nếu percent_display=True thì luôn hiển thị phần trăm.
         Nếu target_set == 0 thì không hiển thị phần trăm.
         """
-        if obj.achivement is not None:
+        if obj.achievement is not None:
             if obj.target_set == 0:
-                return f"{obj.achivement:,.4f}"
+                return f"{obj.achievement:,.4f}"
             if obj.kpi and hasattr(obj.kpi, 'percent_display') and obj.kpi.percent_display:
-                return f"{round(obj.achivement * 100, 3):,.3f}%"
+                return f"{round(obj.achievement * 100, 3):,.3f}%"
             if obj.kpi and hasattr(obj.kpi, 'percentage_cal') and obj.kpi.percentage_cal is False and obj.target_set is not None and obj.target_set < 1:
-                return f"{round(obj.achivement * 100, 3):,.3f}%"
-            return f"{obj.achivement:,.4f}"
+                return f"{round(obj.achievement * 100, 3):,.3f}%"
+            return f"{obj.achievement:,.4f}"
         return ''
-    achivement_1f.short_description = 'Achivement'
+    achievement_1f.short_description = 'Achievement'
 
     def final_result_percent_1f(self, obj):
         """Hiển thị kết quả cuối cùng dạng phần trăm (1 chữ số thập phân)."""
