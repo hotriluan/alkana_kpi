@@ -31,7 +31,8 @@
                             <select name="month" class="form-select border-primary fw-bold"
                                 onchange="this.form.submit()">
                                 {% for m in months %}
-                                <option value="{{ m }}" {% if current_month == m %}selected{% endif %}>
+                                <option value="{{ m }}" {% if current_month == m %}selected{% endif %}>
+
 
                                     {{ m }} Month
                                 </option>
@@ -99,7 +100,8 @@
                                 </td>
 
                                 <td class="text-end position-relative" style="width: 150px;">
-                                    {% if not result.is_locked and result.kpi.percentage_cal %}
+
+                                    {% if not result.is_locked and result.active != 0 and result.active != False and result.kpi.percentage_cal %}
                                     <input type="text"
                                         class="form-control form-control-sm text-end font-monospace text-muted"
                                         name="target_input_{{ result.id }}"
@@ -115,25 +117,20 @@
                                         </div>
                                     </div>
                                     {% else %}
-                                    <span class="text-muted font-monospace">
-                                        {{ result.display_target_input|default:"-" }}
+                                    <span class="fw-bold text-secondary">
+                                        {{ result.form_value_target_input|default:"-" }}
                                     </span>
+
+                                    {% if result.active == 0 or result.active == False %}
+                                    <i class="bi bi-slash-circle text-muted ms-1" title="Inactive Item"
+                                        data-bs-toggle="tooltip"></i>
+                                    {% endif %}
                                     {% endif %}
                                 </td>
 
                                 <td class="text-end position-relative" style="width: 160px;">
-                                    {% if result.is_locked or result.kpi.from_sap %}
-                                    <div class="d-flex justify-content-end align-items-center gap-2">
-                                        {% if result.kpi.from_sap %}
-                                        <i class="bi bi-robot text-primary" title="Auto-imported from SAP"></i>
-                                        {% endif %}
 
-                                        <span
-                                            class="fw-bold {% if result.is_locked %}text-success{% else %}text-secondary{% endif %} font-monospace fs-5">
-                                            {{ result.display_achievement }}
-                                        </span>
-                                    </div>
-                                    {% else %}
+                                    {% if not result.is_locked and result.active != 0 and result.active != False and not result.kpi.from_sap %}
                                     <input type="text"
                                         class="form-control form-control-sm text-end fw-bold font-monospace"
                                         name="achievement_{{ result.id }}"
@@ -148,6 +145,18 @@
                                             <span class="visually-hidden">Saving...</span>
                                         </div>
                                     </div>
+                                    {% else %}
+                                    <span class="fw-bold text-secondary">
+                                        {{ result.form_value_achievement|default:"-" }}
+                                    </span>
+
+                                    {% if result.kpi.from_sap %}
+                                    <i class="bi bi-robot text-primary ms-1" title="Auto-imported from SAP"></i>
+                                    {% if result.active == 0 or result.active == False %}
+                                    <i class="bi bi-slash-circle text-muted ms-1" title="Inactive Item"
+                                        data-bs-toggle="tooltip"></i>
+                                    {% endif %}
+                                    {% endif %}
                                     {% endif %}
                                 </td>
 
