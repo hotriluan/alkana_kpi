@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.contrib import messages
 from kpi_app.models import alk_kpi_result, alk_employee
 from django.db.models import Count, Avg, Q, Max, Sum, Value, CharField
@@ -160,6 +160,10 @@ def save_kpi_result(request, result_id):
                     is_manager = True
     except:
         pass
+
+    # --- NEW GUARD: ACTIVE CHECK ---
+    if not result.active:
+        return HttpResponseForbidden("This KPI result is inactive and cannot be edited.")
 
     # Authorization Enforcer
     if not is_owner and not is_manager:
@@ -684,6 +688,11 @@ def manager_save_kpi(request, result_id):
     
     result = get_object_or_404(alk_kpi_result, id=result_id)
     
+    # --- NEW GUARD: ACTIVE CHECK ---
+    if not result.active:
+        print(f"ERROR: Attempt to edit INACTIVE KPI {result_id}", file=sys.stderr)
+        return HttpResponseForbidden("This KPI result is inactive and cannot be edited.")
+
     # Security Check: Ensure user has rights to edit this result
     user = request.user
     try:
