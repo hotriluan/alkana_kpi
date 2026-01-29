@@ -45,18 +45,20 @@ def dashboard(request):
     pending_count = total_kpis - approved_count
     completion_rate = int((approved_count / total_kpis * 100)) if total_kpis > 0 else 0
     
-    # Chart Data: Average Final Result per Month
-    from django.db.models import Avg
-    monthly_data = qs.values('month').annotate(avg_score=Avg('final_result')).order_by('month')
+    # Chart Data: Total Score (Sum) per Month as Percentage
+    from django.db.models import Sum
+    monthly_data = qs.values('month').annotate(total_score=Sum('final_result')).order_by('month')
     
     chart_labels = []
-    chart_values = []
+    chart_data = []
     
     # Simple mapping for sorting if needed, or just trust database order
     for item in monthly_data:
         chart_labels.append(item['month'])
-        val = item['avg_score'] if item['avg_score'] else 0
-        chart_values.append(round(float(val), 2))
+        val = item['total_score'] if item['total_score'] else 0
+        # Convert to Percentage (0.8 -> 80.0)
+        percentage_val = float(val) * 100
+        chart_data.append(round(percentage_val, 2))
         
     context = {
         'page_title': 'Employee Dashboard',
@@ -67,7 +69,7 @@ def dashboard(request):
         'approved_count': approved_count,
         'pending_count': pending_count,
         'chart_labels': chart_labels,
-        'chart_values': chart_values,
+        'chart_data': chart_data,
     }
     return render(request, 'kpi_app/portal/dashboard.html', context)
 
