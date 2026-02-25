@@ -48,7 +48,6 @@ def dashboard(request):
     # Dynamic filter options from DB
     available_years = alk_kpi_result.objects.filter(employee=employee).exclude(year__isnull=True).values_list('year', flat=True).distinct().order_by('-year')
     available_sems = alk_kpi_result.objects.filter(employee=employee).exclude(semester__isnull=True).exclude(semester__exact='').values_list('semester', flat=True).distinct().order_by('semester')
-    available_months = alk_kpi_result.objects.filter(employee=employee).exclude(month__isnull=True).exclude(month__exact='').values_list('month', flat=True).distinct().order_by('month')
 
     if not available_years:
         context = {'page_title': 'Dashboard', 'no_data': True}
@@ -57,11 +56,9 @@ def dashboard(request):
     from datetime import datetime as dt
     default_year = str(available_years[0])
     default_sem = available_sems[0] if available_sems else ''
-    default_month = available_months[0] if available_months else ''
 
     current_year = request.GET.get('year', default_year)
     current_sem = request.GET.get('semester', default_sem)
-    current_month = request.GET.get('month', default_month)
 
     try:
         year_int = int(current_year)
@@ -69,12 +66,10 @@ def dashboard(request):
         year_int = dt.now().year
         current_year = str(year_int)
 
-    # Base queryset filtered by employee + selected period
+    # Base queryset: employee + year + semester (all months = full semester view)
     qs = alk_kpi_result.objects.filter(employee=employee, year=year_int)
     if current_sem:
         qs = qs.filter(semester__icontains=current_sem)
-    if current_month:
-        qs = qs.filter(month__icontains=current_month)
 
     # Stats
     total_kpis = qs.count()
@@ -82,15 +77,15 @@ def dashboard(request):
     pending_count = total_kpis - approved_count
     completion_rate = int((approved_count / total_kpis * 100)) if total_kpis > 0 else 0
 
-    # Chart Data: Total Score (Sum) per Month as Percentage
-    from django.db.models import Sum
-    monthly_data = qs.values('month').annotate(total_score=Sum('final_result')).order_by('month')
+    # Chart Data: Average Score per Month across the selected semester
+    from django.db.models import Avg
+    monthly_data = qs.values('month').annotate(avg_score=Avg('final_result')).order_by('month')
 
     chart_labels = []
     chart_data = []
     for item in monthly_data:
         chart_labels.append(item['month'])
-        val = item['total_score'] if item['total_score'] else 0
+        val = item['avg_score'] if item['avg_score'] else 0
         chart_data.append(round(float(val) * 100, 2))
 
     context = {
@@ -99,10 +94,8 @@ def dashboard(request):
         'employee': employee,
         'current_year': str(current_year),
         'current_sem': current_sem,
-        'current_month': current_month,
         'available_years': available_years,
         'available_sems': available_sems,
-        'available_months': available_months,
         'completion_rate': completion_rate,
         'approved_count': approved_count,
         'pending_count': pending_count,
