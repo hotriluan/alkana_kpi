@@ -20,16 +20,17 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponseRedirect
 from kpi_app import views
+from kpi_app.views.portal_views import CustomRoleBasedLoginView
 
 def redirect_root(request):
     return HttpResponseRedirect('/admin/')
 
 urlpatterns = [
-    path('admin/login/', views.user_login), # Change default admin login to custom view
+    path('admin/login/', CustomRoleBasedLoginView.as_view()),  # Style admin login with branding
     path('admin/', admin.site.urls),
     path('', redirect_root),
     path('', include('kpi_app.urls')),
-    path('accounts/login/', views.user_login, name='login'),
+    path('accounts/login/', CustomRoleBasedLoginView.as_view(), name='login'),
     path('accounts/logout/', views.user_logout, name='logout'),
     path('accounts/', include('django.contrib.auth.urls')),
 ]

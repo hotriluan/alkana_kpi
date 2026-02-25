@@ -6,6 +6,26 @@ from kpi_app.models import alk_kpi_result, alk_employee
 from django.db.models import Count, Avg, Q, Max, Sum, Value, CharField
 from django.views.decorators.http import require_POST
 from decimal import Decimal
+from django.contrib.auth.views import LoginView
+from django.shortcuts import resolve_url
+
+
+class CustomRoleBasedLoginView(LoginView):
+    """Uses Django admin login UI with Alkana KPI branding and role-based redirect."""
+    template_name = 'admin/login.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['site_header'] = 'Alkana KPI System'
+        context['site_title'] = 'Alkana KPI'
+        context['title'] = 'Please Log In'
+        return context
+
+    def get_success_url(self):
+        user = self.request.user
+        if user.is_superuser:
+            return resolve_url('admin:index')
+        return resolve_url('portal_dashboard')
 
 @login_required
 def portal_login(request):
