@@ -53,20 +53,21 @@
                             <i class="bi bi-pencil-square me-1"></i> Data Entry
                         </a>
                     </li>
-                    <!-- Manager Dashboard Link -->
-                    {% if user_employee and user_employee.level <= 1 %} <li class="nav-item">
+                    <!-- Manager & Reports Links (Manager only: level <= 1) -->
+                    {% if user_employee and user_employee.level <= 1 %}
+                    <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'manager_dashboard' %}active{% endif %}"
                             href="{% url 'manager_dashboard' %}">
                             <i class="bi bi-graph-up-arrow me-1"></i> Manager
                         </a>
-                        </li>
-                        <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'manager_reports' %}active{% endif %}"
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'manager_reports' %}active fw-bold text-primary{% endif %}"
                             href="{% url 'manager_reports' %}">
                             <i class="bi bi-bar-chart-fill me-1"></i> Reports
                         </a>
-                        </li>
-                        {% endif %}
+                    </li>
+                    {% endif %}
                 </ul>
 
                 <div class="d-flex align-items-center gap-3">
