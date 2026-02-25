@@ -6,7 +6,7 @@ Scans .claude/commands/ directory to build catalog at runtime.
 Usage:
     python ck-help.py                    # Overview with quick start
     python ck-help.py fix                # Category guide with workflow
-    python ck-help.py plan:fast          # Command details
+    python ck-help.py plan --fast        # Command details
     python ck-help.py debug login error  # Task recommendations
     python ck-help.py auth               # Search (unknown word)
 """
@@ -136,49 +136,34 @@ def expand_synonyms(text: str) -> str:
 
 # Task keyword mappings for intent detection
 TASK_MAPPINGS = {
-    "fix": ["fix", "bug", "error", "broken", "issue", "debug", "crash", "fail", "wrong", "not working"],
     "plan": ["plan", "design", "architect", "research", "think", "analyze", "strategy", "how to", "approach"],
     "cook": ["implement", "build", "create", "add", "feature", "code", "develop", "make", "write"],
     "bootstrap": ["start", "new", "init", "setup", "project", "scaffold", "generate", "begin"],
     "test": ["test", "check", "verify", "validate", "spec", "unit", "integration", "coverage", "login", "auth", "e2e"],
     "docs": ["document", "readme", "docs", "explain", "comment", "documentation"],
-    "git": ["commit", "push", "pr", "merge", "branch", "pull", "request", "git"],
-    "design": ["ui", "ux", "style", "layout", "visual", "css", "component", "page", "responsive"],
+    "git": ["git", "commit", "push", "pull request", "merge", "branch", "stage", "diff", "stash"],
     "review": ["review", "audit", "inspect", "quality", "refactor", "clean"],
-    "content": ["copy", "text", "marketing", "content", "blog", "seo"],
-    "integrate": ["integrate", "payment", "api", "connect", "webhook", "third-party"],
-    "skill": ["skill", "agent", "automate", "workflow"],
-    "scout": ["find", "search", "locate", "explore", "scan", "where"],
     "config": ["config", "configure", "settings", "ck.json", ".ck.json", "setup", "locale", "language", "paths"],
     "coding-level": ["coding", "level", "eli5", "junior", "senior", "lead", "god", "beginner", "expert", "teach", "learn", "explain"],
     # New categories
     "worktree": ["worktree", "parallel", "isolate", "isolation", "concurrent", "multiple branches"],
     "kanban": ["kanban", "board", "dashboard", "progress", "track", "orchestration", "visualize"],
-    "preview": ["preview", "view", "render", "markdown", "reader", "novel"],
+    "preview": ["preview", "view", "render", "markdown", "reader", "novel", "explain", "slides", "diagram", "ascii", "visualize", "visual"],
     "journal": ["journal", "diary", "log", "entry", "reflect", "failure", "lesson"],
-    "brainstorm": ["brainstorm", "idea", "ideate", "creative", "explore ideas", "think through"],
     "watzup": ["watzup", "status", "summary", "wrap up", "what's up", "recent", "changes"],
     "notifications": ["notification", "notifications", "notify", "discord", "telegram", "slack", "alert", "webhook", "stop hook", "session end", "setup notification", "setup notifications", "configure discord", "configure telegram", "configure slack", "discord webhook", "telegram bot", "slack webhook"],
 }
 
 # Category workflows and tips
 CATEGORY_GUIDES = {
-    "fix": {
-        "title": "Fixing Issues",
-        "workflow": [
-            ("Start", "`/fix` \"describe your issue\""),
-            ("If stuck", "`/debug` \"more details\""),
-            ("Verify", "`/test`"),
-        ],
-        "tip": "Include error messages for better results",
-    },
     "plan": {
         "title": "Planning",
         "workflow": [
-            ("Quick plan", "`/plan:fast` \"your task\""),
-            ("Deep research", "`/plan:hard` \"complex task\""),
+            ("Quick plan", "`/plan --fast` \"your task\""),
+            ("Deep research", "`/plan --hard` \"complex task\""),
+            ("Multi-agent", "`/plan --parallel` \"complex task\""),
             ("Validate", "`/plan:validate` (interview to confirm decisions)"),
-            ("Execute plan", "`/code` (runs the plan)"),
+            ("Execute plan", "`/cook` (runs the plan)"),
         ],
         "tip": "Use /plan:validate to confirm assumptions before coding",
     },
@@ -186,16 +171,17 @@ CATEGORY_GUIDES = {
         "title": "Implementation",
         "workflow": [
             ("Quick impl", "`/cook` \"your feature\""),
-            ("Auto mode", "`/cook:auto` \"trust me bro\""),
+            ("Auto mode", "`/cook --auto` \"trust me bro\""),
             ("Test", "`/test`"),
         ],
-        "tip": "Cook is standalone - it plans internally. Use /plan → /code for explicit planning",
+        "tip": "Cook is standalone - it plans internally. Use /plan → /cook for explicit planning",
     },
     "bootstrap": {
         "title": "Project Setup",
         "workflow": [
-            ("Quick start", "`/bootstrap:auto:fast` \"requirements\""),
+            ("Quick start", "`/bootstrap --fast` \"requirements\""),
             ("Full setup", "`/bootstrap` \"detailed requirements\""),
+            ("Auto mode", "`/bootstrap --auto` (default)"),
         ],
         "tip": "Include tech stack preferences in description",
     },
@@ -203,7 +189,6 @@ CATEGORY_GUIDES = {
         "title": "Testing",
         "workflow": [
             ("Run tests", "`/test`"),
-            ("Fix failures", "`/fix:test`"),
         ],
         "tip": "Run tests frequently during development",
     },
@@ -215,63 +200,12 @@ CATEGORY_GUIDES = {
         ],
         "tip": "Keep docs close to code for accuracy",
     },
-    "git": {
-        "title": "Git Workflow",
-        "workflow": [
-            ("Commit", "`/git:cm`"),
-            ("Push", "`/git:cp`"),
-            ("PR", "`/git:pr`"),
-        ],
-        "tip": "Commit often with clear messages",
-    },
-    "design": {
-        "title": "Design",
-        "workflow": [
-            ("Quick design", "`/design:fast` \"description\""),
-            ("From screenshot", "`/design:screenshot` <path>"),
-            ("3D design", "`/design:3d` \"description\""),
-        ],
-        "tip": "Reference existing designs for consistency",
-    },
     "review": {
         "title": "Code Review",
         "workflow": [
             ("Full review", "`/review:codebase`"),
         ],
         "tip": "Review before merging to main",
-    },
-    "content": {
-        "title": "Content Creation",
-        "workflow": [
-            ("Quick copy", "`/content:fast` \"requirements\""),
-            ("Quality copy", "`/content:good` \"requirements\""),
-            ("Optimize", "`/content:cro`"),
-        ],
-        "tip": "Know your audience before writing",
-    },
-    "integrate": {
-        "title": "Integration",
-        "workflow": [
-            ("Polar.sh", "`/integrate:polar`"),
-            ("SePay", "`/integrate:sepay`"),
-        ],
-        "tip": "Read API docs before integrating",
-    },
-    "skill": {
-        "title": "Skill Management",
-        "workflow": [
-            ("Create", "`/skill:create`"),
-            ("Optimize", "`/skill:optimize`"),
-        ],
-        "tip": "Skills extend agent capabilities",
-    },
-    "scout": {
-        "title": "Codebase Exploration",
-        "workflow": [
-            ("Find files", "`/scout` \"what to find\""),
-            ("External tools", "`/scout:ext` \"query\""),
-        ],
-        "tip": "Be specific about what you're looking for",
     },
     "coding-level": {
         "title": "Coding Level (Adaptive Communication)",
@@ -301,7 +235,7 @@ CATEGORY_GUIDES = {
         "workflow": [
             ("Create worktree", "`/worktree` \"feature description\""),
             ("Work in isolation", "cd to worktree, implement, test"),
-            ("Review & merge", "`/git:pr` from worktree → merge → cleanup"),
+            ("Review & merge", "Create PR from worktree → merge → cleanup"),
             ("List worktrees", "`/worktree list`"),
             ("Remove worktree", "`/worktree remove <name>`"),
         ],
@@ -317,14 +251,46 @@ CATEGORY_GUIDES = {
         ],
         "tip": "Dashboard shows plan phases, progress bars, and agent activity. Future: worktree + agent orchestration",
     },
+    "brainstorm": {
+        "title": "Brainstorming & Ideation",
+        "workflow": [
+            ("Brainstorm", "`/brainstorm` \"your topic\""),
+            ("With context", "`/brainstorm` \"topic\" (respects codingLevel)"),
+            ("Trade-offs", "Analyze solutions with brutal honesty"),
+        ],
+        "tip": "Use before planning to explore approaches and validate feasibility",
+    },
+    "fix": {
+        "title": "Fixing Issues & Debugging",
+        "workflow": [
+            ("Auto fix", "`/fix` \"describe the issue\""),
+            ("Parallel", "`/fix --parallel` (multi-agent debug)"),
+            ("Debug only", "`/debug` (root cause analysis)"),
+        ],
+        "tip": "Activate /fix before fixing any bug, error, test failure, or CI/CD issue",
+    },
+    "git": {
+        "title": "Git Operations",
+        "workflow": [
+            ("Commit", "`/git cm`"),
+            ("Commit & push", "`/git cp`"),
+            ("Pull request", "`/git pr` [to-branch] [from-branch]"),
+            ("Merge", "`/git merge` [to-branch] [from-branch]"),
+        ],
+        "tip": "Uses conventional commits with auto-split by type/scope. Scans for secrets",
+    },
     "preview": {
-        "title": "Content Preview (Novel Reader UI)",
+        "title": "Content Preview & Novel Reader",
         "workflow": [
             ("View markdown", "`/preview plans/plan.md`"),
             ("Browse directory", "`/preview docs/`"),
+            ("Explain topic", "`/preview --explain OAuth flow`"),
+            ("Generate slides", "`/preview --slides API architecture`"),
+            ("Create diagram", "`/preview --diagram data flow`"),
+            ("ASCII only", "`/preview --ascii auth process`"),
             ("Stop server", "`/preview --stop`"),
         ],
-        "tip": "Beautiful novel-reader UI for markdown. Great for reviewing plans before execution",
+        "tip": "View existing markdown OR generate visual explanations (ASCII + Mermaid). Visuals save to active plan's visuals/ folder",
     },
     "journal": {
         "title": "Technical Journaling",
@@ -334,15 +300,6 @@ CATEGORY_GUIDES = {
             ("Lessons learned", "Turn setbacks into future guidance"),
         ],
         "tip": "Use after repeated test failures, critical bugs, or architectural pivots. Raw honesty = future wisdom",
-    },
-    "brainstorm": {
-        "title": "Brainstorming & Ideation",
-        "workflow": [
-            ("Quick brainstorm", "`/brainstorm \"your question\"`"),
-            ("Explore approaches", "Get 2-3 viable solutions with trade-offs"),
-            ("Challenge assumptions", "Receive brutally honest feedback"),
-        ],
-        "tip": "Respects codingLevel. Set `codingLevel: 0` for ELI5 explanations or `5` for expert-only mode",
     },
     "watzup": {
         "title": "Session Review & Wrap-up",
@@ -520,19 +477,22 @@ def show_overview(data: dict, prefix: str) -> None:
     print()
     print("**Quick Start:**")
     print(f"- `/{prefix}cook` - Implement features (standalone)")
-    print(f"- `/{prefix}plan` + `/{prefix}code` - Plan then execute")
-    print(f"- `/{prefix}fix` - Fix bugs intelligently")
+    print(f"- `/{prefix}plan` + `/{prefix}cook` - Plan then execute")
     print(f"- `/{prefix}test` - Run and analyze tests")
     print()
     print("**Common Workflows:**")
-    print(f"- New feature: `/{prefix}plan` → `/{prefix}code` → `/{prefix}test` → `/{prefix}git:pr`")
-    print(f"- Bug fix: `/{prefix}debug` → `/{prefix}fix` → `/{prefix}test` → `/{prefix}git:cm`")
-    print(f"- Review: `/{prefix}scout` → `/{prefix}review` → `/{prefix}watzup`")
+    print(f"- New feature: `/{prefix}plan` → `/{prefix}cook` → `/{prefix}test`")
+    print(f"- Review: `/{prefix}review` → `/{prefix}watzup`")
     print()
     print("**Categories:**")
-    for cat_key in sorted(categories.keys()):
+    # Merge discovered command categories with skill-only categories from CATEGORY_GUIDES
+    all_cats = set(categories.keys()) | set(CATEGORY_GUIDES.keys())
+    # Exclude internal-only categories from overview
+    skip_cats = {"config", "coding-level", "notifications"}
+    for cat_key in sorted(all_cats - skip_cats):
         count = len(commands.get(cat_key, []))
-        print(f"- `{cat_key}` ({count})")
+        suffix = f" ({count})" if count > 0 else ""
+        print(f"- `{cat_key}`{suffix}")
     print()
     print("**Usage:**")
     print(f"- `{help_cmd} <category>` - Category guide with workflow")
@@ -543,7 +503,7 @@ def show_overview(data: dict, prefix: str) -> None:
     print(f"- Unclear about approach? → `/{prefix}brainstorm` first")
     print(f"- Agent generated report? → `/{prefix}preview` to view")
     print("- Add `ultrathink` for deep analysis (more tokens)")
-    print("- `:parallel` variants (e.g., `/code:parallel`) = faster but more tokens, check quota")
+    print("- `--parallel` flag (e.g., `/plan --parallel`) = multi-agent, faster but more tokens")
 
 
 def show_category_guide(data: dict, category: str, prefix: str) -> None:
