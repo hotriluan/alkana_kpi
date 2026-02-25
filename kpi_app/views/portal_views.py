@@ -38,54 +38,71 @@ def portal_login(request):
 def dashboard(request):
     """Employee Portal Dashboard showing stats and charts."""
     user = request.user
-    
-    # Access Control: Ensure only appropriate levels access this
-    # if user.is_superuser:
-    #    return redirect('/admin/')
-    
+
     try:
         employee = alk_employee.objects.get(user_id=user)
     except alk_employee.DoesNotExist:
         messages.error(request, "Employee profile not found.")
         return redirect('logout')
 
-    # Get KPIs for the current active semester/year (Assuming 2025/2nd SEM for now or filtering all)
-    # Ideally we'd have a 'current period' setting, but we'll take the latest available year/sem
-    latest_year = alk_kpi_result.objects.filter(employee=employee).order_by('-year').values_list('year', flat=True).first()
-    
-    if not latest_year:
-         context = {'page_title': 'Dashboard', 'no_data': True}
-         return render(request, 'kpi_app/portal/dashboard.html', context)
+    # Dynamic filter options from DB
+    available_years = alk_kpi_result.objects.filter(employee=employee).exclude(year__isnull=True).values_list('year', flat=True).distinct().order_by('-year')
+    available_sems = alk_kpi_result.objects.filter(employee=employee).exclude(semester__isnull=True).exclude(semester__exact='').values_list('semester', flat=True).distinct().order_by('semester')
+    available_months = alk_kpi_result.objects.filter(employee=employee).exclude(month__isnull=True).exclude(month__exact='').values_list('month', flat=True).distinct().order_by('month')
 
-    # Filter for latest year
-    qs = alk_kpi_result.objects.filter(employee=employee, year=latest_year)
-    
+    if not available_years:
+        context = {'page_title': 'Dashboard', 'no_data': True}
+        return render(request, 'kpi_app/portal/dashboard.html', context)
+
+    from datetime import datetime as dt
+    default_year = str(available_years[0])
+    default_sem = available_sems[0] if available_sems else ''
+    default_month = available_months[0] if available_months else ''
+
+    current_year = request.GET.get('year', default_year)
+    current_sem = request.GET.get('semester', default_sem)
+    current_month = request.GET.get('month', default_month)
+
+    try:
+        year_int = int(current_year)
+    except (ValueError, TypeError):
+        year_int = dt.now().year
+        current_year = str(year_int)
+
+    # Base queryset filtered by employee + selected period
+    qs = alk_kpi_result.objects.filter(employee=employee, year=year_int)
+    if current_sem:
+        qs = qs.filter(semester__icontains=current_sem)
+    if current_month:
+        qs = qs.filter(month__icontains=current_month)
+
     # Stats
     total_kpis = qs.count()
     approved_count = qs.filter(is_locked=True).count()
     pending_count = total_kpis - approved_count
     completion_rate = int((approved_count / total_kpis * 100)) if total_kpis > 0 else 0
-    
+
     # Chart Data: Total Score (Sum) per Month as Percentage
     from django.db.models import Sum
     monthly_data = qs.values('month').annotate(total_score=Sum('final_result')).order_by('month')
-    
+
     chart_labels = []
     chart_data = []
-    
-    # Simple mapping for sorting if needed, or just trust database order
     for item in monthly_data:
         chart_labels.append(item['month'])
         val = item['total_score'] if item['total_score'] else 0
-        # Convert to Percentage (0.8 -> 80.0)
-        percentage_val = float(val) * 100
-        chart_data.append(round(percentage_val, 2))
-        
+        chart_data.append(round(float(val) * 100, 2))
+
     context = {
         'page_title': 'Employee Dashboard',
         'user_employee': employee,
         'employee': employee,
-        'year': latest_year,
+        'current_year': str(current_year),
+        'current_sem': current_sem,
+        'current_month': current_month,
+        'available_years': available_years,
+        'available_sems': available_sems,
+        'available_months': available_months,
         'completion_rate': completion_rate,
         'approved_count': approved_count,
         'pending_count': pending_count,
