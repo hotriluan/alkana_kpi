@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
+from django.core.paginator import Paginator
 from django.contrib import messages
 from kpi_app.models import alk_kpi_result, alk_employee
 from django.db.models import Count, Avg, Q, Max, Sum, Value, CharField
@@ -855,6 +856,11 @@ def manager_reports(request):
         })
         rank += 1
 
+    # Pagination
+    paginator = Paginator(processed_ranking, 20)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'current_year': str(current_year),
         'current_sem': current_sem,
@@ -862,7 +868,7 @@ def manager_reports(request):
         'available_years': available_years,
         'available_sems': available_sems,
         'available_months': available_months,
-        'ranking_data': processed_ranking,
+        'page_obj': page_obj,
     }
     return render(request, 'kpi_app/portal/manager_reports.html', context)
 
