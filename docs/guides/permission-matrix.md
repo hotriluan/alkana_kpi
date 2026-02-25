@@ -43,6 +43,11 @@ return results.filter(employee__dept__in=depts_in_group)
 - Cross-functional managers monitoring group performance
 - Executive-level visibility across department groups
 
+**Manager Reports Access**:
+- Can access `/portal/manager/reports/` for employee ranking
+- View aggregated KPI scores across department group
+- Filter by year, semester, month
+
 **Example**:
 - Employee in "Finance - 410" group can see:
   - Finance Department employees
@@ -79,6 +84,11 @@ return results.filter(employee__dept=employee.dept)
 - Department heads
 - Department managers
 - Team leads with department oversight
+
+**Manager Reports Access**:
+- Can access `/portal/manager/reports/` for employee ranking
+- View aggregated KPI scores within department
+- Filter by year, semester, month
 
 **Example**:
 - Finance Manager can see/edit:

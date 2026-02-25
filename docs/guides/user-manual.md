@@ -9,6 +9,7 @@ A guide for end users of the Alkana KPI Management System.
 - [Viewing Your KPIs](#viewing-your-kpis)
 - [Updating Your Profile](#updating-your-profile)
 - [Viewing KPI Reports](#viewing-kpi-reports)
+- [Manager Reports (Ranking)](#manager-reports-ranking)
 - [Exporting Data](#exporting-data)
 - [Understanding Your KPI Scores](#understanding-your-kpi-scores)
 - [Frequently Asked Questions](#frequently-asked-questions)
@@ -82,6 +83,7 @@ After logging in, you'll see the main menu:
 
 - **Home**: View KPI reports and summaries
 - **Profile**: Update your personal information
+- **Manager Reports** (if manager): View employee rankings
 - **Admin** (if authorized): Access administrative functions
 - **Logout**: Sign out of the system
 
@@ -173,6 +175,59 @@ You can update:
 - You cannot change your username
 - You cannot change your employee code or department
 - Contact administrator to change these details
+
+---
+
+## Manager Reports (Ranking)
+
+**Available to**: Level 0 (Group Managers) and Level 1 (Department Managers) only
+
+### Accessing Manager Reports
+
+1. Click **Manager Reports** in the navigation menu
+2. You'll see the employee ranking page
+
+### Using Filters
+
+**Filter Options**:
+- **Year**: Select the year (e.g., 2025)
+- **Semester**: Choose "1st SEM" or "2nd SEM"
+- **Month**: Select month ("1st", "2nd", ..., "final")
+
+**Steps**:
+1. Select desired filters
+2. Click **Filter** button
+3. View updated ranking table
+
+### Understanding the Ranking Table
+
+**Columns Displayed**:
+- **Rank**: Employee position (1 = highest score)
+- **Name**: Employee full name
+- **Department**: Employee's department
+- **Total Score**: Sum of all final_result values
+- **Percentage**: Achievement percentage (total/max * 100)
+
+**Ranking Logic**:
+- Employees ranked by Total Score (descending)
+- Only approved and active KPIs included
+- Filters apply to all calculations in real-time
+
+**Manager Scope**:
+- **Level 0**: See employees across all departments in your group
+- **Level 1**: See employees only in your department
+
+### Example Use Cases
+
+**Monthly Review**:
+1. Filter: Year=2025, Semester="1st SEM", Month="1st"
+2. Review employee rankings for first month
+3. Identify top/bottom performers
+
+**Semester Summary**:
+1. Filter: Year=2025, Semester="1st SEM", Month="final"
+2. View final semester rankings
+3. Use for performance reviews
 
 ---
 

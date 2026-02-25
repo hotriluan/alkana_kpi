@@ -759,3 +759,87 @@ def manager_save_kpi(request, result_id):
     response = HttpResponse("")
     response['HX-Trigger'] = 'kpi_table_update'
     return response
+
+
+@login_required
+def manager_reports(request):
+    """
+    Manager Reports Dashboard - Displays employee performance ranking
+    based on approved (is_locked=True) and active KPI results.
+    """
+    # Authorization: Only managers (level <= 1) can access
+    try:
+        employee = alk_employee.objects.get(user_id=request.user)
+        if employee.level > 1:
+            return HttpResponseForbidden("Access denied: Manager privileges required")
+    except alk_employee.DoesNotExist:
+        messages.error(request, "Employee profile not found.")
+        return redirect('logout')
+    
+    # Define allowed values
+    ALLOWED_SEMESTERS = ['1st SEM', '2nd SEM']
+    ALLOWED_MONTHS = ['1st', '2nd', '3rd', '4th', '5th', 'final']
+    
+    # 1. Get Filters (Default to current values or request GET params)
+    from datetime import datetime
+    current_year = request.GET.get('year', str(datetime.now().year))
+    current_sem = request.GET.get('semester', '2nd SEM')
+    current_month = request.GET.get('month', '1st')
+    
+    # Validate inputs
+    if current_sem not in ALLOWED_SEMESTERS:
+        current_sem = '2nd SEM'
+    if current_month not in ALLOWED_MONTHS:
+        current_month = '1st'
+    
+    # Validate year is numeric
+    try:
+        year_int = int(current_year)
+    except (ValueError, TypeError):
+        year_int = datetime.now().year
+        current_year = str(year_int)
+
+    # 2. Query Approved & Active Data Only
+    valid_results = alk_kpi_result.objects.filter(
+        year=year_int,
+        semester=current_sem,
+        month=current_month,
+        is_locked=True,
+        active=True
+    )
+
+    # 3. Aggregate Total Score per Employee with percentage calculation in DB
+    from django.db.models.functions import Coalesce
+    ranking_data = (
+        valid_results.values(
+            'employee__id',
+            'employee__employee_name',
+            'employee__job_title__job_title'
+        )
+        .annotate(
+            total_score=Coalesce(Sum('final_result'), Decimal('0.0')),
+            percentage_score=Coalesce(Sum('final_result'), Decimal('0.0')) * 100
+        )
+        .order_by('-percentage_score')  # Sort descending (Highest score first)
+    )
+
+    # 4. Process for UI (Add ranking)
+    processed_ranking = []
+    rank = 1
+    for emp in ranking_data:
+        processed_ranking.append({
+            'rank': rank,
+            'id': emp['employee__id'],
+            'name': emp['employee__employee_name'],
+            'job_title': emp['employee__job_title__job_title'],
+            'score': round(float(emp['percentage_score']), 2)
+        })
+        rank += 1
+
+    context = {
+        'current_year': current_year,
+        'current_sem': current_sem,
+        'current_month': current_month,
+        'ranking_data': processed_ranking,
+    }
+    return render(request, 'kpi_app/portal/manager_reports.html', context)

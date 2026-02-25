@@ -253,6 +253,72 @@ GET /export-alk-kpi-result/?year=2025&semester=1st%20SEM
 
 ---
 
+### Manager Reports (Employee Ranking)
+
+**URL**: `/portal/manager/reports/`  
+**Method**: GET  
+**View**: `kpi_app.views.portal_views.manager_reports`  
+**Template**: `kpi_app/portal/manager_reports.html`  
+**Authentication**: Required (@login_required)  
+**Authorization**: Manager level (employee.level <= 1)
+
+**Purpose**: View employee ranking report based on aggregated KPI results
+
+**GET Parameters**:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| year | integer | No | Filter by year (e.g., 2025) |
+| semester | string | No | Filter by semester ("1st SEM" or "2nd SEM") |
+| month | string | No | Filter by month ("1st", "2nd", ..., "final") |
+
+**Response**: HTML page with ranking table
+
+**Data Returned**:
+- Employee name, department
+- Total score (sum of final_result)
+- Achievement percentage (total * 100 / sum of max)
+- Rank (ordered by total score descending)
+
+**Query Optimization**:
+- Percentage calculation performed in database
+- Aggregation uses `Sum()` for performance
+- Only approved (`status="Approved"`) and active (`active=True`) KPIs included
+
+**Access Control**:
+- **Level 0 (Group Manager)**: See employees across department group
+- **Level 1 (Department Manager)**: See employees in same department
+- **Level 2+**: Forbidden (403)
+
+**Security Features**:
+- Year/semester/month input validation
+- SQL injection protection via parameterized queries
+- XSS protection via Django auto-escaping
+
+**Example**:
+```
+GET /portal/manager/reports/?year=2025&semester=1st%20SEM&month=1st
+```
+
+**Response Context**:
+```python
+{
+    'ranking': [
+        {
+            'employee__name': 'John Doe',
+            'employee__dept__name': 'Finance',
+            'total': 85.5,
+            'percentage': 95.0
+        },
+        # ... more employees
+    ],
+    'year': 2025,
+    'semester': '1st SEM',
+    'month': '1st'
+}
+```
+
+---
+
 ## Admin Endpoints
 
 ### Django Admin Interface
@@ -301,6 +367,7 @@ urlpatterns = [
     path('accounts/logout/', views.user_logout, name='accounts_logout'),
     path('export-alk-kpi-result/', views.export_alk_kpi_result, name='export_alk_kpi_result'),
     path('manage/', views.manage_kpi_result, name='manage_kpi_result'),
+    path('portal/manager/reports/', portal_views.manager_reports, name='manager_reports'),
 ]
 ```
 
@@ -330,6 +397,7 @@ urlpatterns = [
 | `profile` | `/profile/` | User profile |
 | `export_alk_kpi_result` | `/export-alk-kpi-result/` | Export to Excel |
 | `manage_kpi_result` | `/manage/` | Manage KPI results |
+| `manager_reports` | `/portal/manager/reports/` | Manager employee ranking |
 
 **Usage in Templates**:
 ```django
