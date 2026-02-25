@@ -799,11 +799,11 @@ def manager_reports(request):
         year_int = datetime.now().year
         current_year = str(year_int)
 
-    # 2. Query Approved & Active Data Only
+    # 2. Query Approved & Active Data Only (relaxed matching for semester/month)
     valid_results = alk_kpi_result.objects.filter(
         year=year_int,
-        semester=current_sem,
-        month=current_month,
+        semester__icontains=current_sem,
+        month__icontains=current_month,
         is_locked=True,
         active=True
     )
