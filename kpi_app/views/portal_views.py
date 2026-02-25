@@ -776,22 +776,21 @@ def manager_reports(request):
         messages.error(request, "Employee profile not found.")
         return redirect('logout')
     
-    # Define allowed values
-    ALLOWED_SEMESTERS = ['1st SEM', '2nd SEM']
-    ALLOWED_MONTHS = ['1st', '2nd', '3rd', '4th', '5th', 'final']
-    
-    # 1. Get Filters (Default to current values or request GET params)
+    # 1. Get distinct filter options from DB for dropdowns
+    available_years = alk_kpi_result.objects.exclude(year__isnull=True).values_list('year', flat=True).distinct().order_by('-year')
+    available_sems = alk_kpi_result.objects.exclude(semester__isnull=True).exclude(semester__exact='').values_list('semester', flat=True).distinct().order_by('semester')
+    available_months = alk_kpi_result.objects.exclude(month__isnull=True).exclude(month__exact='').values_list('month', flat=True).distinct().order_by('month')
+
+    # Default to first available option from DB
     from datetime import datetime
-    current_year = request.GET.get('year', str(datetime.now().year))
-    current_sem = request.GET.get('semester', '2nd SEM')
-    current_month = request.GET.get('month', '1st')
-    
-    # Validate inputs
-    if current_sem not in ALLOWED_SEMESTERS:
-        current_sem = '2nd SEM'
-    if current_month not in ALLOWED_MONTHS:
-        current_month = '1st'
-    
+    default_year = str(available_years[0]) if available_years else str(datetime.now().year)
+    default_sem = available_sems[0] if available_sems else '2nd SEM'
+    default_month = available_months[0] if available_months else '1st'
+
+    current_year = request.GET.get('year', default_year)
+    current_sem = request.GET.get('semester', default_sem)
+    current_month = request.GET.get('month', default_month)
+
     # Validate year is numeric
     try:
         year_int = int(current_year)
@@ -837,9 +836,12 @@ def manager_reports(request):
         rank += 1
 
     context = {
-        'current_year': current_year,
+        'current_year': str(current_year),
         'current_sem': current_sem,
         'current_month': current_month,
+        'available_years': available_years,
+        'available_sems': available_sems,
+        'available_months': available_months,
         'ranking_data': processed_ranking,
     }
     return render(request, 'kpi_app/portal/manager_reports.html', context)
