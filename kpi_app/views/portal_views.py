@@ -796,7 +796,10 @@ def manager_reports(request):
     except alk_employee.DoesNotExist:
         messages.error(request, "Employee profile not found.")
         return redirect('logout')
-    
+
+    # Department isolation: managers see only their own dept
+    manager_dept = employee.dept
+
     # 1. Get distinct filter options from DB for dropdowns
     available_years = alk_kpi_result.objects.exclude(year__isnull=True).values_list('year', flat=True).distinct().order_by('-year')
     available_sems = alk_kpi_result.objects.exclude(semester__isnull=True).exclude(semester__exact='').values_list('semester', flat=True).distinct().order_by('semester')
@@ -819,14 +822,15 @@ def manager_reports(request):
         year_int = datetime.now().year
         current_year = str(year_int)
 
-    # 2. Query Approved & Active Data Only (relaxed matching for semester/month)
+    # 2. Query Approved KPI Data (historical: active=True no longer required)
     valid_results = alk_kpi_result.objects.filter(
         year=year_int,
         semester__icontains=current_sem,
         month__icontains=current_month,
         is_locked=True,
-        active=True
     )
+    if manager_dept:
+        valid_results = valid_results.filter(employee__dept=manager_dept)
 
     # 3. Aggregate Total Score per Employee with percentage calculation in DB
     from django.db.models.functions import Coalesce
@@ -887,6 +891,9 @@ def export_manager_reports(request):
     except alk_employee.DoesNotExist:
         return HttpResponseForbidden('Employee profile not found')
 
+    # Department isolation
+    manager_dept = employee.dept
+
     # 2. Get filters from request
     current_year = request.GET.get('year', '')
     current_sem  = request.GET.get('semester', '')
@@ -900,14 +907,15 @@ def export_manager_reports(request):
         year_int = datetime.now().year
         current_year = str(year_int)
 
-    # 3. Query approved & active data only
+    # 3. Query approved KPI data (historical: active=True removed)
     valid_results = alk_kpi_result.objects.filter(
         year=year_int,
         semester__icontains=current_sem,
         month__icontains=current_month,
         is_locked=True,
-        active=True
     )
+    if manager_dept:
+        valid_results = valid_results.filter(employee__dept=manager_dept)
 
     from django.db.models.functions import Coalesce
     ranking_data = (
