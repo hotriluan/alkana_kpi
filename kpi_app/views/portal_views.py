@@ -865,3 +865,96 @@ def manager_reports(request):
         'ranking_data': processed_ranking,
     }
     return render(request, 'kpi_app/portal/manager_reports.html', context)
+
+
+@login_required
+def export_manager_reports(request):
+    """Export manager reports ranking to Excel (.xlsx)."""
+    import openpyxl
+    from openpyxl.styles import Font, Alignment, PatternFill
+
+    # 1. Authorization: managers only
+    try:
+        employee = alk_employee.objects.get(user_id=request.user)
+        if employee.level > 1:
+            return HttpResponseForbidden('Access denied: Manager privileges required')
+    except alk_employee.DoesNotExist:
+        return HttpResponseForbidden('Employee profile not found')
+
+    # 2. Get filters from request
+    current_year = request.GET.get('year', '')
+    current_sem  = request.GET.get('semester', '')
+    current_month = request.GET.get('month', '')
+
+    # Validate year
+    try:
+        year_int = int(current_year)
+    except (ValueError, TypeError):
+        from datetime import datetime
+        year_int = datetime.now().year
+        current_year = str(year_int)
+
+    # 3. Query approved & active data only
+    valid_results = alk_kpi_result.objects.filter(
+        year=year_int,
+        semester__icontains=current_sem,
+        month__icontains=current_month,
+        is_locked=True,
+        active=True
+    )
+
+    from django.db.models.functions import Coalesce
+    ranking_data = (
+        valid_results.values(
+            'employee__id',
+            'employee__name',
+            'employee__job_title__job_title'
+        )
+        .annotate(total_score=Coalesce(Sum('final_result'), Decimal('0.0')))
+        .order_by('-total_score')
+    )
+
+    # 4. Build Excel workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f'Ranking {current_month} {current_year}'
+
+    # Header style
+    header_font = Font(bold=True, color='FFFFFF')
+    header_fill = PatternFill(start_color='4E73DF', end_color='4E73DF', fill_type='solid')
+    header_align = Alignment(horizontal='center')
+
+    headers = ['RANK', 'EMPLOYEE NAME', 'JOB TITLE', 'TOTAL SCORE (%)']
+    ws.append(headers)
+    for cell in ws[1]:
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_align
+
+    # Column widths
+    ws.column_dimensions['A'].width = 10
+    ws.column_dimensions['B'].width = 30
+    ws.column_dimensions['C'].width = 25
+    ws.column_dimensions['D'].width = 20
+
+    # 5. Data rows
+    rank = 1
+    for emp in ranking_data:
+        raw_score = emp['total_score'] if emp['total_score'] else 0
+        percentage_score = round(float(raw_score) * 100, 2)
+        ws.append([
+            rank,
+            emp['employee__name'],
+            emp['employee__job_title__job_title'],
+            percentage_score
+        ])
+        rank += 1
+
+    # 6. Return file response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f'KPI_Ranking_{current_year}_{current_month}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    wb.save(response)
+    return response

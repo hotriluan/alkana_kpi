@@ -16,6 +16,7 @@ urlpatterns = [
     path('portal/', portal_views.dashboard, name='portal_dashboard'),
     path('portal/manager/', portal_views.manager_dashboard, name='manager_dashboard'),
     path('portal/manager/reports/', portal_views.manager_reports, name='manager_reports'),
+    path('portal/manager/reports/export/', portal_views.export_manager_reports, name='export_manager_reports'),
     path('portal/manager/review/<int:emp_id>/', portal_views.manager_review_employee, name='manager_review_employee'),
     path('portal/manager/toggle-approval/<int:emp_id>/', portal_views.manager_toggle_approval, name='manager_toggle_approval'),
     path('portal/input/', portal_views.input_form, name='portal_input'),
