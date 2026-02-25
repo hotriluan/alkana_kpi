@@ -1,5 +1,5 @@
 {% extends 'kpi_app/portal/base.html' %}
-{% load humanize %}
+{% load humanize kpi_extras %}
 
 {% block content %}
 <div class="container pb-5" style="margin-bottom: 80px;">
@@ -75,7 +75,7 @@
 
                         <tbody id="kpi-table-body" hx-get="." hx-trigger="kpi_table_update from:body" hx-target="this"
                             hx-select="#kpi-table-body" hx-swap="outerHTML">
-                            {% for result in results %}
+                            {% for result in page_obj %}
                             <tr>
                                 <td class="ps-4">
                                     <div class="d-flex align-items-center">
@@ -202,6 +202,38 @@
                     </table>
                 </div>
             </form>
+
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4 pb-3 px-3">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% param_replace page=page_obj.previous_page_number %}">Previous</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% param_replace page=num %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% param_replace page=page_obj.next_page_number %}">Next</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
         </div>
     </div>
 </div>

@@ -617,30 +617,37 @@ def manager_review_employee(request, emp_id):
     current_month = request.GET.get('month') or '1st'
 
     # 2. Filter QuerySet (Relaxed matching to align with Dashboard)
-    results = alk_kpi_result.objects.filter(
+    results_qs = alk_kpi_result.objects.filter(
         employee=target_emp,
         year=current_year,
         semester__icontains=current_sem,
         month__icontains=current_month
     ).order_by('kpi__kpi_name')
 
+    # Check approval status using queryset (efficient DB query before list conversion)
+    is_fully_approved = not results_qs.filter(is_locked=False).exists() and results_qs.exists()
+
+    # Convert to list and attach display formats (must be list so paginator slices
+    # don't re-query DB and lose the dynamically attached attributes)
+    results = list(results_qs)
     for res in results:
         _attach_admin_formats(res)
-
-    # Check approval status
-    is_fully_approved = not results.filter(is_locked=False).exists() and results.exists()
 
     # 3. Context for Dropdowns
     months = ['1st', '2nd', '3rd', '4th', '5th', 'Final']
 
-    # 4. Calculate Total Score
+    # 4. Calculate Total Score from full result set (before pagination)
     total_score = sum(r.final_result for r in results) * 100 if results else 0.0
+
+    # 5. Paginate
+    paginator = Paginator(results, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
 
     context = {
         'page_title': f'Review: {target_emp.name}',
         'user_employee': current_employee,
         'target_emp': target_emp,
-        'results': results,
+        'page_obj': page_obj,
         'is_fully_approved': is_fully_approved,
         'is_manager': True,
         'current_year': current_year,
