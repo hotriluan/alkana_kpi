@@ -813,7 +813,7 @@ def manager_reports(request):
     ranking_data = (
         valid_results.values(
             'employee__id',
-            'employee__employee_name',
+            'employee__name',
             'employee__job_title__job_title'
         )
         .annotate(
@@ -830,7 +830,7 @@ def manager_reports(request):
         processed_ranking.append({
             'rank': rank,
             'id': emp['employee__id'],
-            'name': emp['employee__employee_name'],
+            'name': emp['employee__name'],
             'job_title': emp['employee__job_title__job_title'],
             'score': round(float(emp['percentage_score']), 2)
         })
