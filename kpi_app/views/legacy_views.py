@@ -76,17 +76,11 @@ def user_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            # Redirect logic based on Level
-            try:
-                # Check for employee profile
-                emp = alk_employee.objects.get(user_id=user)
-                if emp.level >= 2: # Employee, Team Lead, etc.
-                    return redirect('portal_dashboard')
-            except alk_employee.DoesNotExist:
-                pass
-            
-            # Default redirect
-            return redirect('home')
+            # 1. Superuser → Django Admin
+            if user.is_superuser:
+                return redirect('/admin/')
+            # 2. All other users (Managers + Employees) → Portal
+            return redirect('portal_dashboard')
         else:
             from django.contrib.auth.forms import AuthenticationForm
             form = AuthenticationForm(request, data=request.POST)
