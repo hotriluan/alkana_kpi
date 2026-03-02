@@ -137,7 +137,7 @@ class AlkKpiResultImportResource(resources.ModelResource):
     target_set = fields.Field(attribute='target_set', column_name='target_set')
     max = fields.Field(attribute='max', column_name='max')
     target_input = fields.Field(attribute='target_input', column_name='target_input')
-    achivement = fields.Field(attribute='achivement', column_name='achivement')
+    achivement = fields.Field(attribute='achievement', column_name='achivement')
     month = fields.Field(attribute='month', column_name='month')
 
     class Meta:
@@ -194,7 +194,7 @@ class AlkKpiResultExportResource(resources.ModelResource):
     def dehydrate_target_input_1f(self, obj):
         return f"{round(obj.target_input, 1)}" if obj.target_input is not None else ''
     def dehydrate_achivement_1f(self, obj):
-        return f"{round(obj.achivement, 1)}" if obj.achivement is not None else ''
+        return f"{round(obj.achievement, 1)}" if obj.achievement is not None else ''
     def dehydrate_final_result_percent_1f(self, obj):
         return f"{round(obj.final_result * 100, 1)}%" if obj.final_result is not None else ''
     def dehydrate_get_kpi_type(self, obj):
