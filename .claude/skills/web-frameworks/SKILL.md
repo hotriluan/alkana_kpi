@@ -1,8 +1,15 @@
 ---
-name: web-frameworks
+name: ck:web-frameworks
 description: Build with Next.js (App Router, RSC, SSR, ISR), Turborepo monorepos. Use for React apps, server rendering, build optimization, caching strategies, shared dependencies.
+user-invocable: true
+when_to_use: "Invoke for Next.js, RSC, SSR, ISR, Turborepo, or caching."
+category: frameworks
+keywords: [nextjs, turborepo, ssr, isr, rsc]
 license: MIT
-version: 1.0.0
+argument-hint: "[framework] [feature]"
+metadata:
+  author: claudekit
+  version: "1.0.0"
 ---
 
 # Web Frameworks Skill Group
@@ -236,7 +243,7 @@ export default async function Post({ params }: { params: { slug: string } }) {
 
 ```yaml
 # .github/workflows/ci.yml
-name: CI
+name: ck:CI
 on: [push, pull_request]
 
 jobs:
@@ -258,16 +265,16 @@ jobs:
 
 Python utilities in `scripts/` directory:
 
-**nextjs-init.py** - Initialize Next.js project with best practices
-**turborepo-migrate.py** - Convert existing monorepo to Turborepo
+**nextjs_init.py** - Initialize Next.js project with best practices
+**turborepo_migrate.py** - Convert existing monorepo to Turborepo
 
 Usage examples:
 ```bash
 # Initialize new Next.js app with TypeScript and recommended setup
-python scripts/nextjs-init.py --name my-app --typescript --app-router
+python scripts/nextjs_init.py --name my-app --typescript --app-router
 
 # Migrate existing monorepo to Turborepo with dry-run
-python scripts/turborepo-migrate.py --path ./my-monorepo --dry-run
+python scripts/turborepo_migrate.py --path ./my-monorepo --dry-run
 
 # Run tests
 cd scripts/tests
@@ -282,6 +289,7 @@ pytest
 - Use Image component for automatic optimization
 - Set proper metadata for SEO
 - Leverage caching strategies (force-cache, revalidate, no-store)
+- Track stable Next.js security releases separately from canary framework drift. Production apps should stay on a patched stable release line and avoid canary-only pins unless testing a specific upstream issue.
 
 **Turborepo:**
 - Structure monorepo with clear separation (apps/, packages/)

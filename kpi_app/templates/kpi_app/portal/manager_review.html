@@ -31,9 +31,7 @@
                             <select name="month" class="form-select border-primary fw-bold"
                                 onchange="this.form.submit()">
                                 {% for m in months %}
-                                <option value="{{ m }}" {% if current_month|lower==m|lower %}selected{% endif %}>
-
-
+                                <option value="{{ m }}" {% if current_month|lower == m|lower %}selected{% endif %}>
                                     {{ m }} Month
                                 </option>
                                 {% endfor %}
@@ -107,8 +105,7 @@
 
                                 <td class="text-end position-relative" style="width: 150px;">
 
-                                    {% if not result.is_locked and result.active != 0 and result.active != False and
-                                    result.kpi.percentage_cal %}
+                                    {% if not result.is_locked and result.active != 0 and result.active != False and result.kpi.percentage_cal %}
                                     <input type="text"
                                         class="form-control form-control-sm text-end font-monospace text-muted"
                                         name="target_input_{{ result.id }}"
@@ -137,8 +134,7 @@
 
                                 <td class="text-end position-relative" style="width: 160px;">
 
-                                    {% if not result.is_locked and result.active != 0 and result.active != False and not
-                                    result.kpi.from_sap %}
+                                    {% if not result.is_locked and result.active != 0 and result.active != False and not result.kpi.from_sap %}
                                     <input type="text"
                                         class="form-control form-control-sm text-end fw-bold font-monospace"
                                         name="achievement_{{ result.id }}"

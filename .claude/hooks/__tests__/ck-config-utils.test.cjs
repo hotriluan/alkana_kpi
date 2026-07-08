@@ -552,6 +552,15 @@ describe('ck-config-utils.cjs', () => {
       assert.strictEqual(DEFAULT_CONFIG.trust.enabled, false);
     });
 
+    it('enables statusline quota chips by default', () => {
+      assert.strictEqual(DEFAULT_CONFIG.statuslineQuota, true);
+    });
+
+    it('does not enable retired team event handlers by default', () => {
+      assert.strictEqual(Object.hasOwn(DEFAULT_CONFIG.hooks, 'task-completed-handler'), false);
+      assert.strictEqual(Object.hasOwn(DEFAULT_CONFIG.hooks, 'teammate-idle-handler'), false);
+    });
+
   });
 
 });

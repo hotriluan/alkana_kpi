@@ -1,7 +1,15 @@
 ---
-name: research
-description: "[CK] Research technical solutions, analyze architectures, gather requirements thoroughly. Use for technology evaluation, best practices research, solution design, scalability/security/maintainability analysis."
+name: ck:research
+description: "Research technical solutions, analyze architectures, gather requirements thoroughly. Use for technology evaluation, best practices research, solution design, scalability/security/maintainability analysis."
+user-invocable: true
+when_to_use: "Invoke for deep technical research before implementation."
+category: utilities
+keywords: [research, evaluation, analysis, solutions]
 license: MIT
+argument-hint: "[topic]"
+metadata:
+  author: claudekit
+  version: "1.0.0"
 ---
 
 # Research
@@ -24,9 +32,10 @@ First, you will clearly define the research scope by:
 You will employ a multi-source research strategy:
 
 1. **Search Strategy**:
-   - **Gemini Toggle**: Check `.claude/.ck.json` (or `~/.claude/.ck.json`) for `skills.research.useGemini` (default: `true`). If `false`, skip Gemini and use WebSearch.
+   - **Gemini Toggle**: Check `.claude/.ck.json` (or `~/.claude/.ck.json`) for `skills.research.useGemini` (default: `false`). If `false` or absent, skip Gemini and use WebSearch directly.
    - **Gemini Model**: Read from `.claude/.ck.json`: `gemini.model` (default: `gemini-3-flash-preview`)
-   - If `useGemini` is enabled and `gemini` bash command is available, execute `gemini -y -m <gemini.model> "...your search prompt..."` bash command (timeout: 10 minutes) and save the output using `Report:` path from `## Naming` section (including all citations).
+   - If `useGemini` is `true`: first validate Gemini CLI works: `command -v gemini >/dev/null 2>&1 && cd /tmp && timeout 15 gemini -y -m <gemini.model> --prompt "ping" >/dev/null 2>&1`. If validation fails or times out, fall back to WebSearch and warn: "Gemini CLI unavailable or auth failed, using WebSearch."
+   - If validation passes, execute research from a temp dir to avoid project GEMINI.md interception (note: global `~/.gemini/GEMINI.md` still loads): `cd /tmp && timeout 180 gemini -y -m <gemini.model> --prompt "...your search prompt..." 2>&1`. Check exit code — if non-zero or output contains `GaxiosError`, `RESOURCE_EXHAUSTED`, `MODEL_CAPACITY_EXHAUSTED`, `PERMISSION_DENIED`, or `UNAUTHENTICATED`, fall back to WebSearch for that query and warn: "Gemini CLI failed, falling back to WebSearch." Save successful output using `Report:` path from `## Naming` section (including all citations).
    - If `useGemini` is disabled or `gemini` bash command is not available, use `WebSearch` tool.
    - Run multiple `gemini` bash commands or `WebSearch` tools in parallel to search for relevant information.
    - Craft precise search queries with relevant keywords
@@ -36,7 +45,7 @@ You will employ a multi-source research strategy:
    - **IMPORTANT:** You are allowed to perform at most **5 researches (max 5 tool calls)**, user might request less than this amount, **strictly respect it**, think carefully based on the task before performing each related research topic.
 
 2. **Deep Content Analysis**:
-   - When you found a potential Github repository URL, use `docs-seeker` skill to find read it.
+   - When you found a potential Github repository URL, use `ck:docs-seeker` skill to find read it.
    - Focus on official documentation, API references, and technical specifications
    - Analyze README files from popular GitHub repositories
    - Review changelog and release notes for version-specific information
@@ -155,6 +164,7 @@ You will ensure all research meets these criteria:
 - Always note deprecation warnings and migration paths for older technologies
 
 ## Output Requirements
+**IMPORTANT:** Invoke "/ck:project-organization" skill to organize the outputs.
 
 Your final report must:
 1. Be saved using the `Report:` path from `## Naming` section with a descriptive filename

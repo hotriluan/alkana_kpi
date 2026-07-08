@@ -5,15 +5,15 @@ Cook skill handles most of these — this reference documents bootstrap-specific
 
 ## Implementation
 
-Handled by **cook** skill. Bootstrap-specific notes:
+Handled by **ck:cook** skill. Bootstrap-specific notes:
 - Use main agent to implement step by step per plan in `./plans`
 - Use `ui-ux-designer` subagent for frontend per `./docs/design-guidelines.md`
-- Asset pipeline: `ai-multimodal` (generate/analyze) → `imagemagick` (crop/resize) → background removal if needed
+- Asset pipeline: `ck:ai-multimodal` (generate/analyze) → `imagemagick` (crop/resize) → background removal if needed
 - Run type checking and compile after each phase
 
 ## Testing
 
-Handled by **cook** skill. Bootstrap-specific notes:
+Handled by **ck:cook** skill. Bootstrap-specific notes:
 - Write real tests — NO fake data, mocks, cheats, tricks, temporary solutions
 - `tester` subagent runs tests → report to main agent
 - If failures: `debugger` subagent → fix → repeat until all pass
@@ -21,7 +21,7 @@ Handled by **cook** skill. Bootstrap-specific notes:
 
 ## Code Review
 
-Handled by **cook** skill. Bootstrap-specific notes:
+Handled by **ck:cook** skill. Bootstrap-specific notes:
 - `code-reviewer` subagent reviews code
 - If critical issues: fix → retest → repeat
 - Report summary to user when all tests pass and code reviewed
@@ -52,7 +52,7 @@ Guide user to get started with the project:
 2. Guide user to get started + suggest next steps
 3. Ask user if they want to commit/push:
    - If yes: `git-manager` subagent to commit (and push if requested)
-   - `--fast` mode: auto-commit (no push) without asking
+   - `--fast` mode: keep the same commit approval gate; speed mode does not imply git automation
 
 **Report rules:**
 - Sacrifice grammar for concision

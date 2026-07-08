@@ -1,7 +1,15 @@
 ---
-name: bootstrap
-description: "[CK] Bootstrap new projects with research, tech stack, design, planning, and implementation. Modes: full (interactive), auto (default), fast (skip research), parallel (multi-agent)."
+name: ck:bootstrap
+description: "Bootstrap new projects with research, tech stack, design, planning, and implementation. Modes: full (default interactive), auto (explicit autonomous), fast (skip research), parallel (multi-agent)."
+user-invocable: true
+when_to_use: "Invoke to start a new project or full-stack setup from scratch."
+category: utilities
+keywords: [scaffold, project, setup, boilerplate]
 license: MIT
+argument-hint: "[requirements] [--full|--auto|--fast|--parallel]"
+metadata:
+  author: claudekit
+  version: "1.0.0"
 ---
 
 # Bootstrap - New Project Scaffolding
@@ -13,22 +21,22 @@ End-to-end project bootstrapping from idea to running code.
 ## Usage
 
 ```
-/bootstrap <user-requirements>
+/ck:bootstrap <user-requirements>
 ```
 
-**Flags** (optional, default `--auto`):
+**Flags** (optional, default `--full`):
 
 | Flag | Mode | Thinking | User Gates | Planning Skill | Cook Skill |
 |------|------|----------|------------|----------------|------------|
 | `--full` | Full interactive | Ultrathink | Every phase | `--hard` | (interactive) |
-| `--auto` | Automatic | Ultrathink | Design only | `--auto` | `--auto` |
-| `--fast` | Quick | Think hard | None | `--fast` | `--auto` |
+| `--auto` | Automatic explicit opt-in | Ultrathink | Design only | `--auto` | `--auto` |
+| `--fast` | Quick | Think hard | Cook review gates | `--fast` | (interactive) |
 | `--parallel` | Multi-agent | Ultrathink | Design only | `--parallel` | `--parallel` |
 
 **Example:**
 ```
-/bootstrap "Build a SaaS dashboard with auth" --fast
-/bootstrap "E-commerce platform with Stripe" --parallel
+/ck:bootstrap "Build a SaaS dashboard with auth" --fast
+/ck:bootstrap "E-commerce platform with Stripe" --parallel
 ```
 
 ## Workflow Overview
@@ -41,11 +49,11 @@ Each mode loads a specific workflow reference + shared phases.
 
 ## Mode Detection
 
-If no flag provided, default to `--auto`.
+If no flag provided, default to `--full`.
 
 Load the appropriate workflow reference:
 - `--full`: Load `references/workflow-full.md`
-- `--auto`: Load `references/workflow-auto.md`
+- `--auto`: Load `references/workflow-auto.md` only when explicitly requested
 - `--fast`: Load `references/workflow-fast.md`
 - `--parallel`: Load `references/workflow-parallel.md`
 
@@ -62,20 +70,20 @@ Check if Git initialized. If not:
 After early phases (research, tech stack, design), trigger downstream skills:
 
 ### Planning Phase
-Activate **planning** skill with mode-appropriate flag:
-- `--full` → `/plan --hard <requirements>` (thorough research + validation)
-- `--auto` → `/plan --auto <requirements>` (auto-detect complexity)
-- `--fast` → `/plan --fast <requirements>` (skip research)
-- `--parallel` → `/plan --parallel <requirements>` (file ownership + dependency graph)
+Activate **ck:plan** skill with mode-appropriate flag:
+- `--full` → `/ck:plan --hard <requirements>` (thorough research + validation)
+- `--auto` → `/ck:plan --auto <requirements>` (auto-detect complexity)
+- `--fast` → `/ck:plan --fast <requirements>` (skip research)
+- `--parallel` → `/ck:plan --parallel <requirements>` (file ownership + dependency graph)
 
 Planning skill outputs a plan path. Pass this to cook.
 
 ### Implementation Phase
-Activate **cook** skill with the plan path and mode-appropriate flag:
-- `--full` → `/cook <plan-path>` (interactive review gates)
-- `--auto` → `/cook --auto <plan-path>` (skip review gates)
-- `--fast` → `/cook --auto <plan-path>` (skip review gates)
-- `--parallel` → `/cook --parallel <plan-path>` (multi-agent execution)
+Activate **ck:cook** skill with the plan path and mode-appropriate flag:
+- `--full` → `/ck:cook <plan-path>` (interactive review gates)
+- `--auto` → `/ck:cook --auto <plan-path>` (explicit autonomous implementation)
+- `--fast` → `/ck:cook <plan-path>` (skip extra research, keep cook review gates)
+- `--parallel` → `/ck:cook --parallel <plan-path>` (multi-agent execution)
 
 ## Role
 
@@ -90,11 +98,12 @@ Elite software engineering expert specializing in system architecture and techni
 - DO NOT implement code directly — delegate through planning + cook skills
 - Sacrifice grammar for concision in reports
 - List unresolved questions at end of reports
+- Run `/ck:journal` to write a concise technical journal entry upon completion
 
 ## References
 
 - `references/workflow-full.md` - Full interactive workflow
-- `references/workflow-auto.md` - Auto workflow (default)
+- `references/workflow-auto.md` - Explicit auto workflow
 - `references/workflow-fast.md` - Fast workflow
 - `references/workflow-parallel.md` - Parallel workflow
 - `references/shared-phases.md` - Common phases (implementation → final report)

@@ -1,6 +1,14 @@
 ---
-name: repomix
-description: Pack repositories into AI-friendly files with Repomix (XML, Markdown, plain text). Use for codebase snapshots, LLM context preparation, security audits, third-party library analysis.
+name: ck:repomix
+description: Pack repositories into AI-friendly files with Repomix (XML, Markdown, plain text). Use for new-project onboarding, codebase snapshots, LLM context preparation, security audits, third-party library analysis.
+user-invocable: true
+when_to_use: "Invoke to pack repositories for LLM context or audits."
+category: dev-tools
+keywords: [codebase, pack, snapshot, llm-context]
+argument-hint: "[path] [--style xml|markdown|plain|json]"
+metadata:
+  author: claudekit
+  version: "1.0.0"
 ---
 
 # Repomix Skill
@@ -58,6 +66,7 @@ repomix --include "src/**/*.ts" --remove-comments -o output.md
 - Git-aware processing (respects .gitignore)
 - Token counting for LLM context management
 - Security checks for sensitive information
+- Monorepo-aware skill generation via `--skill-generate`, including dependency files under package/app directories
 
 ### Remote Repository Support
 Process remote repositories without cloning:
@@ -151,6 +160,8 @@ repomix --init  # creates repomix.config.json
 ## Token Management
 
 Repomix automatically counts tokens for individual files, total repository, and per-format output.
+
+Current Repomix releases use a faster pure-JavaScript tokenization path and parallelize more of the pack pipeline. Still treat token count as a review gate: check the generated summary before sharing context, narrow includes for large monorepos, and prefer package-scoped packs when only one workspace matters.
 
 Typical LLM context limits:
 - Claude Sonnet 4.5: ~200K tokens

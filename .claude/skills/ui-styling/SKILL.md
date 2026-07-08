@@ -1,8 +1,15 @@
 ---
-name: ui-styling
+name: ck:ui-styling
 description: Style UIs with shadcn/ui components (Radix UI + Tailwind CSS). Use for accessible components, themes, dark mode, responsive layouts, design systems, color customization.
+user-invocable: true
+when_to_use: "Invoke for shadcn, Tailwind, themes, or component styling."
+category: frontend
+keywords: [shadcn, radix, tailwind, themes]
 license: MIT
-version: 1.0.0
+argument-hint: "[component or layout]"
+metadata:
+  author: claudekit
+  version: "1.0.0"
 ---
 
 # UI Styling Skill

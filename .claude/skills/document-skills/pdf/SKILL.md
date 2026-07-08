@@ -1,7 +1,14 @@
 ---
-name: pdf
+name: ck:pdf
 description: Extract text/tables, create, merge, split PDFs. Fill PDF forms programmatically. Use for PDF processing, generation, form filling, document analysis, batch operations.
+user-invocable: true
+when_to_use: "Invoke for PDF extraction, generation, forms, or batch edits."
+category: multimedia
+keywords: [pdf, extract, text, pages]
 license: Proprietary. LICENSE.txt has complete terms
+metadata:
+  author: claudekit
+  version: "1.0.0"
 ---
 
 # PDF Processing Guide

@@ -135,6 +135,85 @@ describe('subagent-init.cjs', () => {
 
   });
 
+  describe('Issue #540: ck plan CLI injection for plan-aware agents', () => {
+
+    it('injects ck plan CLI section for agents that may update plan state', async () => {
+      const planAwareTypes = ['planner', 'project-manager', 'code-simplifier', 'fullstack-developer'];
+
+      for (const agentType of planAwareTypes) {
+        const result = await runHook({
+          agent_type: agentType,
+          agent_id: 'test-540',
+          cwd: process.cwd()
+        });
+
+        const context = result.output?.hookSpecificOutput?.additionalContext || '';
+
+        // Exact subcommand syntax per CLI registry
+        assert.ok(
+          context.includes('ck plan check'),
+          `Agent type '${agentType}' should receive 'ck plan check' command`
+        );
+        assert.ok(
+          context.includes('ck plan check') && context.includes('--start'),
+          `Agent type '${agentType}' should receive 'ck plan check <id> --start' for in-progress`
+        );
+        assert.ok(
+          context.includes('ck plan uncheck'),
+          `Agent type '${agentType}' should receive 'ck plan uncheck' command`
+        );
+        assert.ok(
+          context.includes('Fallback'),
+          `Agent type '${agentType}' should include fallback note`
+        );
+      }
+    });
+
+    it('does not inject plan mutation commands for advisory-only agents', async () => {
+      const advisoryTypes = ['brainstormer', 'code-reviewer'];
+
+      for (const agentType of advisoryTypes) {
+        const result = await runHook({
+          agent_type: agentType,
+          agent_id: 'test-704',
+          cwd: process.cwd()
+        });
+
+        const context = result.output?.hookSpecificOutput?.additionalContext || '';
+
+        assert.doesNotMatch(
+          context,
+          /ck plan check/,
+          `Agent type '${agentType}' should not receive plan mutation commands`
+        );
+        assert.doesNotMatch(
+          context,
+          /ck plan uncheck/,
+          `Agent type '${agentType}' should not receive plan mutation commands`
+        );
+      }
+    });
+
+    it('does NOT inject ck plan CLI for non-plan agents', async () => {
+      const nonPlanTypes = ['tester', 'debugger', 'researcher', 'git-manager', 'test-agent'];
+
+      for (const agentType of nonPlanTypes) {
+        const result = await runHook({
+          agent_type: agentType,
+          agent_id: 'test-540',
+          cwd: process.cwd()
+        });
+
+        const context = result.output?.hookSpecificOutput?.additionalContext || '';
+        assert.ok(
+          !context.includes('Plan CLI'),
+          `Agent type '${agentType}' should NOT receive Plan CLI section`
+        );
+      }
+    });
+
+  });
+
   describe('Issue #291: CWD and Git Root Handling', () => {
 
     it('uses payload.cwd for context output', async () => {
@@ -368,6 +447,32 @@ describe('subagent-init.cjs', () => {
       assert.ok(context.includes('## Context'), 'Should have Context section');
       assert.ok(context.includes('## Rules'), 'Should have Rules section');
       assert.ok(context.includes('## Naming'), 'Should have Naming section');
+    });
+
+    it('injects descriptive report filename guidance', async () => {
+      const result = await runHook({
+        agent_type: 'code-reviewer',
+        agent_id: 'report-name-test',
+        cwd: process.cwd()
+      });
+
+      const context = result.output?.hookSpecificOutput?.additionalContext || '';
+
+      assert.match(
+        context,
+        /code-reviewer-[^\n]*-report\.md/,
+        'Should include a report filename ending in -report.md'
+      );
+      assert.match(
+        context,
+        /red-team-plan-review-report\.md/,
+        'Should show how to add a descriptive workflow purpose before -report'
+      );
+      assert.match(
+        context,
+        /Avoid generic report names like red-team-review\.md/,
+        'Should warn against generic report names'
+      );
     });
 
     it('includes absolute paths for reports and plans', async () => {

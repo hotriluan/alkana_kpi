@@ -5,10 +5,35 @@
 1. **Read plans directory:** Glob `./plans/*/plan.md` to discover all plans
 2. **Parse YAML frontmatter:** Extract status, priority, effort, branch, tags
 3. **Scan phase files:** Count `[x]` (done) vs `[ ]` (remaining) in each phase
-4. **Calculate progress:** `completed / total * 100` per plan
-5. **Cross-reference:** Compare plan tasks against actual implementation
+4. **Reconcile completed tasks:** Ensure all completed task metadata is reflected in phase files (backfill stale earlier phases first)
+5. **Calculate progress:** `completed / total * 100` per plan
+6. **Cross-reference:** Compare plan tasks against actual implementation
 
 ## Status Update Protocol
+
+### CLI-First Status Updates (Preferred)
+
+Use `ck plan` CLI commands for deterministic, format-safe status changes:
+
+```bash
+# Mark phase completed
+ck plan check <phase-id>
+
+# Mark phase in-progress
+ck plan check <phase-id> --start
+
+# Revert phase to pending
+ck plan uncheck <phase-id>
+
+# Add new phase or sub-phase
+ck plan add-phase "Phase Name" [--after <id>]
+```
+
+CLI automatically updates both `plan.md` table AND phase file frontmatter.
+Plan-level status auto-computed: all completed → `completed`, any in-progress → `in-progress`.
+
+**Fallback:** If `ck` CLI is not available, edit `plan.md` directly —
+only change the Status column cell, preserve table structure exactly.
 
 ### Plan-Level Status
 
@@ -30,6 +55,10 @@ Each `phase-XX-*.md` tracks with checkboxes:
 ### Task-Level Status
 
 Claude Tasks (session-scoped): `pending` → `in_progress` → `completed`
+
+### Reconciliation Rule
+
+If a later phase is marked done while earlier phases still contain stale unchecked completed items, backfill earlier phases in the same sync pass before final status reporting.
 
 ## Verification Checklist
 

@@ -1,43 +1,42 @@
 # Orchestration Protocol
 
-## Delegation Context (MANDATORY)
+Use this file only when spawning subagents or coordinating parallel work.
 
-When spawning subagents via Task tool, **ALWAYS** include in prompt:
+## Delegation Context
 
-1. **Work Context Path**: The git root of the PRIMARY files being worked on
-2. **Reports Path**: `{work_context}/plans/reports/` for that project
-3. **Plans Path**: `{work_context}/plans/` for that project
+Every subagent prompt should include:
 
-**Example:**
+- task
+- files to read
+- files it may modify
+- acceptance criteria
+- constraints
+- work context path
+- reports path, normally `{work_context}/plans/reports/`
+
+If the shell CWD differs from the primary project, use the primary project paths.
+
+## Context Isolation
+
+- Do not pass full conversation history.
+- Summarize only decisions needed for the subtask.
+- Give exact file paths instead of "look around the repo" unless scouting is the task.
+- Keep coordination, merge decisions, and user approvals in the controller session.
+
+## Parallel Work
+
+Use parallel subagents only when file ownership is clear and integration points are known. Avoid parallel edits to the same file, generated artifact, database migration sequence, or shared config.
+
+## Status Protocol
+
+Ask subagents to end with:
+
+```text
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Summary: one or two sentences
+Concerns/Blockers: optional
 ```
-Task prompt: "Fix parser bug.
-Work context: /path/to/project-b
-Reports: /path/to/project-b/plans/reports/
-Plans: /path/to/project-b/plans/"
-```
 
-**Rule:** If CWD differs from work context (editing files in different project), use the **work context paths**, not CWD paths.
+Handle `BLOCKED` and `NEEDS_CONTEXT` by changing context, scope, or approach. Do not retry the same failing prompt repeatedly.
 
----
-
-#### Sequential Chaining
-Chain subagents when tasks have dependencies or require outputs from previous steps:
-- **Planning → Implementation → Simplification → Testing → Review**: Use for feature development (tests verify simplified code)
-- **Research → Design → Code → Documentation**: Use for new system components
-- Each agent completes fully before the next begins
-- Pass context and outputs between agents in the chain
-
-#### Parallel Execution
-Spawn multiple subagents simultaneously for independent tasks:
-- **Code + Tests + Docs**: When implementing separate, non-conflicting components
-- **Multiple Feature Branches**: Different agents working on isolated features
-- **Cross-platform Development**: iOS and Android specific implementations
-- **Careful Coordination**: Ensure no file conflicts or shared resource contention
-- **Merge Strategy**: Plan integration points before parallel execution begins
-
----
-
-## Agent Teams (Optional)
-
-For multi-session parallel collaboration, activate the `/team` skill.
-Not part of the default orchestration workflow. See `.claude/skills/team/SKILL.md` for templates, decision criteria, and spawn instructions.
+For multi-session team work, use `/ck:team` and its skill-local rules.

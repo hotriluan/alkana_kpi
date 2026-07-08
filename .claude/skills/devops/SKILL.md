@@ -1,8 +1,15 @@
 ---
-name: devops
+name: ck:devops
 description: Deploy to Cloudflare (Workers, R2, D1), Docker, GCP (Cloud Run, GKE), Kubernetes (kubectl, Helm). Use for serverless, containers, CI/CD, GitOps, security audit.
+user-invocable: true
+when_to_use: "Invoke for cloud, containers, Kubernetes, CI/CD, or GitOps."
+category: infrastructure
+keywords: [cloudflare, docker, gcp, kubernetes, cicd]
 license: MIT
-version: 2.0.0
+argument-hint: "[platform] [task]"
+metadata:
+  author: claudekit
+  version: "2.0.0"
 ---
 
 # DevOps Skill
@@ -77,8 +84,8 @@ kubectl apply -f manifests/ && kubectl get pods
 - `kubernetes-troubleshooting.md` / `kubernetes-troubleshooting-advanced.md` - Debug
 
 ### Scripts
-- `scripts/cloudflare-deploy.py` - Automate Worker deployments
-- `scripts/docker-optimize.py` - Analyze Dockerfiles
+- `scripts/cloudflare_deploy.py` - Automate Worker deployments
+- `scripts/docker_optimize.py` - Analyze Dockerfiles
 
 ## Best Practices
 

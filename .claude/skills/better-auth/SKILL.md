@@ -1,8 +1,15 @@
 ---
-name: better-auth
+name: ck:better-auth
 description: Add authentication with Better Auth (TypeScript). Use for email/password, OAuth providers (Google, GitHub), 2FA/MFA, passkeys/WebAuthn, sessions, RBAC, rate limiting.
+user-invocable: true
+when_to_use: "Invoke for Better Auth setup, sessions, OAuth, MFA, or RBAC."
+category: backend
+keywords: [auth, oauth, 2fa, passkeys, sessions]
 license: MIT
-version: 2.0.0
+argument-hint: "[auth-method or feature]"
+metadata:
+  author: claudekit
+  version: "2.0.0"
 ---
 
 # Better Auth Skill
@@ -181,6 +188,15 @@ Better Auth uses client-server architecture:
 - [ ] Configure email sending (verification/reset)
 - [ ] Enable rate limiting for production
 - [ ] Set up error handling
+
+## Current Security Notes
+
+Recent Better Auth releases tightened several security-sensitive plugin paths. When enabling these features, verify the installed version includes the current fixes and keep the default safer settings unless the app has an explicit threat-model exception:
+
+- `oidc-provider` and `mcp` plugins: confidential clients must require `client_secret` on refresh-token grants; use constant-time secret comparison and reject incomplete PKCE parameters.
+- `magicLink`: verification tokens are single-use; avoid custom flows that mint multiple sessions from concurrent requests.
+- Organizations/invitations: keep `requireEmailVerificationOnInvitation` enabled so unverified email ownership cannot accept or enumerate invitations.
+- Device authorization: bind pending device codes to the verifying session so one authenticated user cannot approve another user's device flow.
 
 ## Reference Documentation
 
