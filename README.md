@@ -24,6 +24,7 @@ Alkana KPI enables organizations to:
 - **Multi-level Access Control**: 5 permission levels (0-4) controlling visibility and editing
 - **Excel Integration**: Import/export KPI data and results via XLSX files
 - **Reporting Dashboard**: Filter by semester, month, department with Excel export
+- **Dedicated Portals**: Modern web interfaces (Bootstrap 5, HTMX) for Employees (`/portal/`) and Managers (`/portal/manager/`) decoupling them from Django Admin
 
 ### Admin Features
 - Comprehensive Django Admin interface with custom list displays
@@ -33,6 +34,8 @@ Alkana KPI enables organizations to:
 - Import/Export integration with validation
 
 ### User Features
+- **Modern Employee Portal**: Dedicated HTMX-powered interface (`/portal/`) decoupled from Django Admin
+- **Manager Dashboard**: Specialized views (`/portal/manager/`) with analytics, charts, and ranking tables
 - Employee self-service profile updates
 - Password change functionality
 - View assigned KPIs and results
