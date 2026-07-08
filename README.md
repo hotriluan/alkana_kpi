@@ -131,6 +131,14 @@ Comprehensive documentation is available in the `/docs` directory:
 - **Reporting**: django-slick-reporting 0.11.0, reportlab 4.4.2
 - **Deployment**: IIS with FastCGI (wfastcgi 3.0.0) on Windows Server
 
+## 🤖 AI-Powered Development Environment
+
+This project is built and maintained using the **Claude Kit Engineer** framework. It provides a comprehensive development environment with AI-powered agent orchestration, automated workflows, and intelligent project management utilizing CLI Coding Agents:
+- **Claude Code** (`.claude/`): Handles primary workflows, development rules, and architecture management.
+- **Open Code** (`.opencode/`): Works cohesively with Claude Code to assist with coding tasks.
+
+For agent guidelines and workflows, please refer to [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md).
+
 ## 📊 Database Schema
 
 The application uses 8 core models:
