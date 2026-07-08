@@ -59,12 +59,6 @@
                 value="{{ result.form_value_achievement|default:'' }}" hx-post="{% url 'portal_save_kpi' result.id %}"
                 hx-trigger="change delay:500ms" hx-target="#row-{{ result.id }}" hx-swap="outerHTML" {% if show_checkbox %}hx-vals='{"show_checkbox": "true"}' {% endif %} placeholder="Achieve...">
 
-            <!-- Validation Warning Container -->
-            {% if warning_msg %}
-            <div class="text-danger small mt-1 text-end">
-                <i class="bi bi-exclamation-triangle me-1"></i> {{ warning_msg }}
-            </div>
-            {% endif %}
         </div>
         {% endif %}
     </td>

@@ -206,7 +206,7 @@ def save_kpi_result(request, result_id):
             status=403
         )
     
-    warning_msg = None
+
     
     # --- Handle Achievement Update ---
     # Only allow update if NOT from SAP
@@ -215,15 +215,11 @@ def save_kpi_result(request, result_id):
         try:
             if value_str:
                 value_str = value_str.replace(',', '') # Handle commas
-                value = float(value_str)
+                value = Decimal(value_str)
                 result.achievement = value
-                
-                # Smart Validation for Percentage Type
-                if result.kpi.kpi_type == 1 and value > 1.5:
-                    warning_msg = f"Did you mean {value/100:.2f} ({value}%)? % KPIs should be 0.1 for 10%."
             else:
                 result.achievement = None
-        except ValueError:
+        except Exception:
             return HttpResponse("Invalid Number for Achievement", status=400)
 
     # --- Handle Target Input Update ---
@@ -233,11 +229,11 @@ def save_kpi_result(request, result_id):
         try:
             if tgt_str:
                 tgt_str = tgt_str.replace(',', '') # Handle commas
-                val_tgt = float(tgt_str)
+                val_tgt = Decimal(tgt_str)
                 result.target_input = val_tgt
             else:
                 result.target_input = None
-        except ValueError:
+        except Exception:
             return HttpResponse("Invalid Number for Target Input", status=400)
 
     try:
@@ -257,7 +253,6 @@ def save_kpi_result(request, result_id):
     # Return the updated row HTML
     return render(request, 'kpi_app/portal/partials/kpi_row.html', {
         'result': result,
-        'warning_msg': warning_msg,
         'show_checkbox': show_checkbox,
         'is_manager': request.user.alk_employee_set.first().level <= 1 if hasattr(request.user, 'alk_employee_set') else False 
     })
