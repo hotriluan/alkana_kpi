@@ -554,6 +554,10 @@ def manager_dashboard(request):
         # Filter context
         'anomalies': anomalies_page, # Pass the Page object instead of list
         'team_scope': employees_page, # PASSED FOR LIST DISPLAY
+        # Top-level filter vars used by Review button URLs in template
+        'selected_year': selected_year,
+        'selected_sem': selected_sem,
+        'selected_month': selected_month,
         'filters': {
             'year': selected_year,
             'semester': selected_sem,
@@ -605,10 +609,24 @@ def manager_review_employee(request, emp_id):
              messages.error(request, "Employee not in your Department scope.")
              return redirect('manager_dashboard')
     
-    # 1. Get Filter Params (Handle empty strings and aliases)
-    current_year = request.GET.get('year') or 2025
-    current_sem = request.GET.get('semester') or request.GET.get('sem') or '2nd SEM'
-    current_month = request.GET.get('month') or '1st'
+    # 1. Get Filter Params — derive sensible defaults from DB, never hardcode
+    _year_param = request.GET.get('year', '').strip()
+    _sem_param = (request.GET.get('semester') or request.GET.get('sem') or '').strip()
+    _month_param = request.GET.get('month', '').strip()
+
+    if not _year_param or not _sem_param or not _month_param:
+        # Auto-detect latest available period for this employee
+        latest = alk_kpi_result.objects.filter(
+            employee=target_emp
+        ).order_by('-year', 'semester', 'month').values('year', 'semester', 'month').first()
+        if latest:
+            _year_param = _year_param or str(latest['year'])
+            _sem_param = _sem_param or latest['semester']
+            _month_param = _month_param or latest['month']
+
+    current_year = _year_param or ''
+    current_sem = _sem_param or ''
+    current_month = _month_param or ''
 
     # 2. Filter QuerySet (Relaxed matching to align with Dashboard)
     results_qs = alk_kpi_result.objects.filter(
@@ -656,8 +674,9 @@ def manager_review_employee(request, emp_id):
 @require_POST
 def manager_toggle_approval(request, emp_id):
     """
-    Toggles the 'is_locked' status of a KPI Result.
-    Now supports BULK operations via 'selected_kpi' list.
+    Toggles the 'is_locked' status of selected KPI Results.
+    Supports BULK operations via 'selected_kpi' list.
+    After toggling, triggers a table refresh with the correct year/semester/month filters.
     """
     user = request.user
     try:
@@ -667,48 +686,51 @@ def manager_toggle_approval(request, emp_id):
 
     if current_employee.level > 1:
         return HttpResponse("Unauthorized", status=403)
-    # 1. Get selected IDs from form data (Checkboxes)
+
+    # 1. Extract filter context (passed as hidden inputs from approvalForm)
+    year = request.POST.get('year', '').strip()
+    semester = request.POST.get('semester', '').strip()
+    month = request.POST.get('month', '').strip()
+
+    # 2. Get selected IDs and action from form data
     selected_ids = request.POST.getlist('selected_kpi')
     action = request.POST.get('action')
-    
-    # Fallback to single ID if not bulk (legacy support or single button)
-    # But strictly speaking, the order says "modify to handle LIST"
-    
+
     if not selected_ids:
-        # Try to get single ID if passed slightly differently, or return error
-        # For now, let's assume the frontend update sends everything properly.
-        return HttpResponse('<span class="badge bg-danger">No Items Selected</span>')
+        return HttpResponse('<span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>No Items Selected</span>')
 
     try:
-        # 2. Filter Results (Security: Ensure they belong to the emp_id currently being reviewed)
-        # We should logically ensure the manager has access to this emp_id (already covered by @login_required + system design, 
-        # but in production we'd check team_scope).
+        # 3. Filter Results — security: only allow IDs belonging to the target employee
         results = alk_kpi_result.objects.filter(
             id__in=selected_ids,
             employee_id=emp_id
         )
-        
+
         count = results.count()
 
-        # 3. Apply Action
-        # 3. Apply Action
+        if count == 0:
+            return HttpResponse('<span class="badge bg-secondary">No matching records found</span>')
+
+        # 4. Apply Action
         if action == 'approve':
             results.update(is_locked=True)
-            msg = f'<span class="fw-bold text-success"><i class="bi bi-check-circle me-1"></i>Approved {count} Items</span>'
-        
+            msg = f'<span class="fw-bold text-success"><i class="bi bi-check-circle me-1"></i>Approved {count} item(s)</span>'
         elif action == 'reject':
             results.update(is_locked=False)
-            msg = f'<span class="fw-bold text-warning text-dark"><i class="bi bi-unlock me-1"></i>Unlocked {count} Items</span>'
-            
+            msg = f'<span class="fw-bold text-warning"><i class="bi bi-unlock me-1"></i>Unlocked {count} item(s)</span>'
         else:
-             msg = '<span class="badge bg-secondary">Unknown Action</span>'
+            return HttpResponse('<span class="badge bg-secondary">Unknown Action</span>')
 
+        # 5. Build response — trigger table reload with correct filter params
         response = HttpResponse(msg)
+        # The tbody listens to 'kpi_table_update from:body' and will re-GET with
+        # its hx-get URL (which already has year/semester/month baked in from template).
         response['HX-Trigger'] = 'kpi_table_update'
         return response
 
     except Exception as e:
         return HttpResponse(f'<span class="badge bg-danger">Error: {str(e)}</span>')
+
 
 
 @login_required

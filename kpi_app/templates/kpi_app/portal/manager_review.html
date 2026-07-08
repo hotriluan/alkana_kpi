@@ -22,7 +22,7 @@
 
                         <div class="col-md-3">
                             <label class="small text-muted fw-bold">SEMESTER</label>
-                            <input type="text" class="form-control bg-white" name="sem" value="{{ current_sem }}"
+                            <input type="text" class="form-control bg-white" name="semester" value="{{ current_sem }}"
                                 readonly>
                         </div>
 
@@ -31,7 +31,7 @@
                             <select name="month" class="form-select border-primary fw-bold"
                                 onchange="this.form.submit()">
                                 {% for m in months %}
-                                <option value="{{ m }}" {% if current_month == m %}selected{% endif %}>
+                                <option value="{{ m }}" {% if current_month|lower==m|lower %}selected{% endif %}>
 
 
                                     {{ m }} Month
@@ -55,6 +55,10 @@
         <div class="card-body p-0">
             <form id="approvalForm">
                 {% csrf_token %}
+                {# Hidden inputs so toggle_approval knows which period to redirect back to #}
+                <input type="hidden" name="year" value="{{ current_year }}">
+                <input type="hidden" name="semester" value="{{ current_sem }}">
+                <input type="hidden" name="month" value="{{ current_month }}">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" id="kpiTable">
                         <thead class="table-light text-uppercase small text-muted">
@@ -73,8 +77,10 @@
                             </tr>
                         </thead>
 
-                        <tbody id="kpi-table-body" hx-get="." hx-trigger="kpi_table_update from:body" hx-target="this"
-                            hx-select="#kpi-table-body" hx-swap="outerHTML">
+                        <tbody id="kpi-table-body"
+                            hx-get="?year={{ current_year }}&semester={{ current_sem }}&month={{ current_month }}"
+                            hx-trigger="kpi_table_update from:body" hx-target="this" hx-select="#kpi-table-body"
+                            hx-swap="outerHTML" hx-push-url="false">
                             {% for result in page_obj %}
                             <tr>
                                 <td class="ps-4">
@@ -101,7 +107,8 @@
 
                                 <td class="text-end position-relative" style="width: 150px;">
 
-                                    {% if not result.is_locked and result.active != 0 and result.active != False and result.kpi.percentage_cal %}
+                                    {% if not result.is_locked and result.active != 0 and result.active != False and
+                                    result.kpi.percentage_cal %}
                                     <input type="text"
                                         class="form-control form-control-sm text-end font-monospace text-muted"
                                         name="target_input_{{ result.id }}"
@@ -130,7 +137,8 @@
 
                                 <td class="text-end position-relative" style="width: 160px;">
 
-                                    {% if not result.is_locked and result.active != 0 and result.active != False and not result.kpi.from_sap %}
+                                    {% if not result.is_locked and result.active != 0 and result.active != False and not
+                                    result.kpi.from_sap %}
                                     <input type="text"
                                         class="form-control form-control-sm text-end fw-bold font-monospace"
                                         name="achievement_{{ result.id }}"
@@ -207,30 +215,29 @@
             <nav aria-label="Page navigation" class="mt-4 pb-3 px-3">
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?{% param_replace page=page_obj.previous_page_number %}">Previous</a>
-                        </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?{% param_replace page=page_obj.previous_page_number %}">Previous</a>
+                    </li>
                     {% else %}
-                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
                     {% endif %}
 
                     {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?{% param_replace page=num %}">{{ num }}</a>
-                            </li>
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <li class="page-item">
+                        <a class="page-link" href="?{% param_replace page=num %}">{{ num }}</a>
+                        </li>
                         {% endif %}
-                    {% endfor %}
+                        {% endfor %}
 
-                    {% if page_obj.has_next %}
+                        {% if page_obj.has_next %}
                         <li class="page-item">
                             <a class="page-link" href="?{% param_replace page=page_obj.next_page_number %}">Next</a>
                         </li>
-                    {% else %}
+                        {% else %}
                         <li class="page-item disabled"><span class="page-link">Next</span></li>
-                    {% endif %}
+                        {% endif %}
                 </ul>
             </nav>
             {% endif %}
@@ -250,11 +257,13 @@
             </a>
 
             <button class="btn btn-outline-danger" hx-post="{% url 'manager_toggle_approval' target_emp.id %}"
-                hx-vals='{"action": "reject"}' hx-include="#approvalForm" hx-target="#action-response">
+                hx-vals='{"action": "reject"}' hx-include="#approvalForm" hx-target="#action-response"
+                hx-swap="innerHTML">
                 <i class="bi bi-unlock me-1"></i> Unlock Selected
             </button>
             <button class="btn btn-success" hx-post="{% url 'manager_toggle_approval' target_emp.id %}"
-                hx-vals='{"action": "approve"}' hx-include="#approvalForm" hx-target="#action-response">
+                hx-vals='{"action": "approve"}' hx-include="#approvalForm" hx-target="#action-response"
+                hx-swap="innerHTML">
                 <i class="bi bi-check-circle-fill me-1"></i> Approve Selected
             </button>
         </div>
