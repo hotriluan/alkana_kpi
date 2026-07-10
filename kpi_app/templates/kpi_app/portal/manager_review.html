@@ -105,7 +105,7 @@
 
                                 <td class="text-end position-relative" style="width: 150px;">
 
-                                    {% if not result.is_locked and result.active != 0 and result.active != False and result.kpi.percentage_cal %}
+                                    {% if not result.is_locked and result.active != 0 and result.active != False and result.kpi.percentage_cal and not result.kpi.from_sap %}
                                     <input type="text"
                                         class="form-control form-control-sm text-end font-monospace text-muted"
                                         name="target_input_{{ result.id }}"

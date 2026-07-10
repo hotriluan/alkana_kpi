@@ -26,14 +26,14 @@
 
     <!-- 4. Target Input (Right Aligned) -->
     <td class="text-end">
-        {% if not result.is_locked and result.active != 0 and result.active != False and result.kpi.percentage_cal or is_manager and result.active != 0 and result.active != False and result.kpi.percentage_cal %}
+        {% if not result.kpi.from_sap and not result.is_locked and result.active != 0 and result.active != False and result.kpi.percentage_cal or not result.kpi.from_sap and is_manager and result.active != 0 and result.active != False and result.kpi.percentage_cal %}
         <div class="position-relative">
             <input type="text" class="form-control input-glass font-monospace py-1 text-end" name="target_input"
                 value="{{ result.form_value_target_input|default:'' }}" hx-post="{% url 'portal_save_kpi' result.id %}"
                 hx-trigger="change delay:500ms" hx-target="#row-{{ result.id }}" hx-swap="outerHTML" {% if show_checkbox %}hx-vals='{"show_checkbox": "true"}' {% endif %} placeholder="Target...">
         </div>
         {% else %}
-        <div class="font-monospace text-dark text-nowrap">
+        <div class="font-monospace text-nowrap {% if result.is_locked %}text-success fw-bold{% else %}text-secondary{% endif %}">
             {{ result.form_value_target_input|default:"-" }}
             {% if result.active == 0 or result.active == False %}
             <i class="bi bi-slash-circle text-muted ms-1" title="Inactive Item" data-bs-toggle="tooltip"></i>

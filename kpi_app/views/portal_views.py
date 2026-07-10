@@ -223,8 +223,8 @@ def save_kpi_result(request, result_id):
             return HttpResponse("Invalid Number for Achievement", status=400)
 
     # --- Handle Target Input Update ---
-    # Only allow update if percentage_cal is True
-    if 'target_input' in request.POST and result.kpi.percentage_cal:
+    # Only allow update if percentage_cal is True and not from SAP
+    if 'target_input' in request.POST and result.kpi.percentage_cal and not result.kpi.from_sap:
         tgt_str = request.POST.get('target_input')
         try:
             if tgt_str:
@@ -797,8 +797,8 @@ def manager_save_kpi(request, result_id):
             pass # Keep old value on error
 
     # --- 2. HANDLE TARGET INPUT UPDATE ---
-    # Only allow update if KPI uses Percentage Calculation logic
-    if tgt_key in request.POST and result.kpi.percentage_cal:
+    # Only allow update if KPI uses Percentage Calculation logic and not from SAP
+    if tgt_key in request.POST and result.kpi.percentage_cal and not result.kpi.from_sap:
         val = request.POST.get(tgt_key)
         print(f"DEBUG: Processing Target Input: '{val}'", file=sys.stderr)
         try:
