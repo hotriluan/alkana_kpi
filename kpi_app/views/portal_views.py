@@ -247,6 +247,15 @@ def save_kpi_result(request, result_id):
     # Persist Checkbox State (for Bulk Approval UI)
     show_checkbox = request.POST.get('show_checkbox') == 'true'
     
+    # Calculate Total Score for this period
+    total_val = alk_kpi_result.objects.filter(
+        employee=result.employee,
+        year=result.year,
+        semester=result.semester,
+        month=result.month
+    ).aggregate(Sum('final_result'))['final_result__sum'] or 0
+    total_score = f"{round(total_val * 100, 2):,.2f}%"
+
     # Fallback: If not passed, check is_manager (optional, but specific flag is safer)
     # let's just use the strict flag to avoid layout breakage in input forms.
     
@@ -254,7 +263,9 @@ def save_kpi_result(request, result_id):
     return render(request, 'kpi_app/portal/partials/kpi_row.html', {
         'result': result,
         'show_checkbox': show_checkbox,
-        'is_manager': request.user.alk_employee_set.first().level <= 1 if hasattr(request.user, 'alk_employee_set') else False 
+        'is_manager': request.user.alk_employee_set.first().level <= 1 if hasattr(request.user, 'alk_employee_set') else False,
+        'total_score': total_score,
+        'is_htmx_update': True
     })
 
 def _attach_admin_formats(obj):

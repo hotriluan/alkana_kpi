@@ -88,3 +88,7 @@
         {% endif %}
     </td>
 </tr>
+
+{% if is_htmx_update and total_score %}
+<td id="total-score-value" hx-swap-oob="true" class="text-start ps-0 text-primary">{{ total_score }}</td>
+{% endif %}
