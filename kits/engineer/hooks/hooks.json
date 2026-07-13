@@ -1,0 +1,141 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/plan-format-kanban.cjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write"
+      },
+      {
+        "hooks": [
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-state.cjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "TodoWrite|TodoRead"
+      },
+      {
+        "hooks": [
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/usage-quota-cache-refresh.cjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/descriptive-name.cjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "Write"
+      },
+      {
+        "hooks": [
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/privacy-block.cjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "Read|Write|Edit|Bash"
+      },
+      {
+        "hooks": [
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scout-block.cjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash|Read"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-init.cjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/cook-after-plan-reminder.cjs",
+            "type": "command"
+          },
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-state.cjs",
+            "type": "command"
+          },
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/usage-quota-cache-refresh.cjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-init.cjs",
+            "type": "command"
+          },
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/team-context-inject.cjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-state.cjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/secret-output-guardrail.cjs",
+            "type": "command"
+          },
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/dev-rules-reminder.cjs",
+            "type": "command"
+          },
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/simplify-gate.cjs",
+            "type": "command"
+          },
+          {
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/usage-quota-cache-refresh.cjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ]
+  }
+}

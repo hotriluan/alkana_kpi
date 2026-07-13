@@ -1,0 +1,8 @@
+{
+  "name": "ak-marketing",
+  "version": "0.2.0",
+  "description": "Marketing-specialized kit. Extends core additively with marketing-unique agents, skills, hooks, scripts.",
+  "author": {
+    "name": "AgentKit"
+  }
+}

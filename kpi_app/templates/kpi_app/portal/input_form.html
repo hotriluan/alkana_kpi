@@ -1,0 +1,68 @@
+{% extends 'kpi_app/portal/base.html' %}
+
+{% block content %}
+<div class="row mb-4 fade-in-up">
+    <div class="col-12 text-center text-md-start">
+        <h2 class="fw-bold mb-1">Data Entry</h2>
+        <p class="text-secondary">Update your KPI achievements for the selected period.</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="glass-card p-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-uppercase">Year</label>
+                    <select name="year" class="form-select input-glass" onchange="this.form.submit()">
+                        {% for y in years %}
+                        {% if y == current_year %}
+                        <option value="{{ y }}" selected>{{ y }}</option>
+                        {% else %}
+                        <option value="{{ y }}">{{ y }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-uppercase">Semester</label>
+                    <select name="semester" class="form-select input-glass" onchange="this.form.submit()">
+                        {% for s in semesters %}
+                        {% if s == current_sem %}
+                        <option value="{{ s }}" selected>{{ s }}</option>
+                        {% else %}
+                        <option value="{{ s }}">{{ s }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-uppercase">Month</label>
+                    <select name="month" class="form-select input-glass" onchange="this.form.submit()">
+                        {% for m_code, m_name in months %}
+                        {% if m_code == current_month %}
+                        <option value="{{ m_code }}" selected>{{ m_name }}</option>
+                        {% else %}
+                        <option value="{{ m_code }}">{{ m_name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 text-end">
+                    <a href="{% url 'portal_dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="bi bi-arrow-left me-2"></i> Back
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="row">
+    <div class="col-12">
+        {% include 'kpi_app/portal/partials/kpi_table.html' with table_rows=kpi_results %}
+    </div>
+</div>
+{% endblock %}

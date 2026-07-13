@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Django
+*.db
+*.sqlite3
+media/
+staticfiles/
+
+# Environment & secrets
+.env
+.env.*
+*.env
+*.log
+
+# IDEs & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Backup & temp
+*~
+*.bak
+*.swp
+*.tmp
+
+# Migration cache
+*/migrations/__pycache__/
+*/migrations/*.pyc
+
+# Project-specific
+/alkana_kpi_backup/
+alkana_kpi/settings.py

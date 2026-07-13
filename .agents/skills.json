@@ -1,0 +1,7 @@
+{
+  "entries": [
+    { "path": "../.claude/skills" },
+    { "path": "../kits/engineer/skills" },
+    { "path": "../kits/marketing/skills" }
+  ]
+}
